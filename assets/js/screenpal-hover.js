@@ -156,7 +156,7 @@
   /**
    * Project 5 (MeritPath) Initial Position & Hover Controller
    * - Initial/rest position: second 6 (where the website shows up, avoiding empty start)
-   * - On hover: plays from second 2 (2.0s) to the end, looping back to second 2
+   * - On hover: plays from second 1 (1.0s) to the end, looping back to second 1
    * - On leave: pauses and resets back to second 6, showing the preview poster
    */
   function initProject5Controller() {
@@ -168,13 +168,13 @@
       const poster = card.querySelector('.project-video_poster, .work-card_video-poster');
       video.muted = true;
       video.preload = 'auto';
-      video.loop = false; // Custom loop starting at 2.0s
+      video.loop = false; // Custom loop starting at 1.0s
 
       let isHovered = false;
 
       function setPreviewTime() {
         try {
-          if (!isHovered && (video.currentTime < 1 || isNaN(video.currentTime))) {
+          if (!isHovered && video.paused && (video.currentTime < 5.0 || isNaN(video.currentTime))) {
             video.currentTime = 6.0;
           }
         } catch (e) {}
@@ -187,11 +187,11 @@
       video.addEventListener('loadeddata', setPreviewTime);
       video.addEventListener('canplay', setPreviewTime);
 
-      // Mouseenter (capture phase): start playing from second 2 (2.0s) to the end
+      // Mouseenter (capture phase): start playing from second 1 (1.0s) to the end
       card.addEventListener('mouseenter', (e) => {
         isHovered = true;
         try {
-          video.currentTime = 2.0;
+          video.currentTime = 1.0;
         } catch (e) {}
         const p = video.play();
         if (p !== undefined) {
@@ -219,17 +219,17 @@
 
         setTimeout(() => {
           try {
-            if (video.paused && (video.currentTime < 1 || isNaN(video.currentTime))) {
+            if (video.paused && (video.currentTime < 5.0 || isNaN(video.currentTime))) {
               video.currentTime = 6.0;
             }
           } catch (err) {}
         }, 50);
       }, true);
 
-      // When the video reaches the end while active/hovered, loop seamlessly back to 2.0s
+      // When the video reaches the end while active/hovered, loop seamlessly back to 1.0s
       video.addEventListener('ended', () => {
         if (isHovered || card.classList.contains('is-active')) {
-          video.currentTime = 2.0;
+          video.currentTime = 1.0;
           const p = video.play();
           if (p !== undefined) {
             p.catch(() => {});
@@ -243,7 +243,7 @@
           const isActive = card.classList.contains('is-active');
           if (isActive) {
             try {
-              video.currentTime = 2.0;
+              video.currentTime = 1.0;
             } catch (e) {}
             const p = video.play();
             if (p !== undefined) {
