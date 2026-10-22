@@ -144,8 +144,116 @@
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setup);
+    document.addEventListener('DOMContentLoaded', () => {
+      setup();
+      initProject5Controller();
+    });
   } else {
     setup();
+    initProject5Controller();
+  }
+
+  /**
+   * Project 5 (MeritPath) Initial Position & Hover Controller
+   * - Initial/rest position: second 6 (where the website shows up, avoiding empty start)
+   * - On hover: plays from the start (0.0s)
+   * - On leave: pauses and resets back to second 6, showing the preview poster
+   */
+  function initProject5Controller() {
+    function bindVideo(video) {
+      if (!video || video.__p5Bound) return;
+      video.__p5Bound = true;
+
+      const card = video.closest('.project-card, .splide__slide') || video.parentElement;
+      const poster = card.querySelector('.project-video_poster, .work-card_video-poster');
+      video.muted = true;
+      video.preload = 'auto';
+
+      function setPreviewTime() {
+        try {
+          if (video.currentTime < 1 || isNaN(video.currentTime)) {
+            video.currentTime = 6.0;
+          }
+        } catch (e) {}
+      }
+
+      if (video.readyState >= 1) {
+        setPreviewTime();
+      }
+      video.addEventListener('loadedmetadata', setPreviewTime);
+      video.addEventListener('loadeddata', setPreviewTime);
+      video.addEventListener('canplay', setPreviewTime);
+
+      // Mouseenter (capture phase): start playing from the very beginning (0.0s)
+      card.addEventListener('mouseenter', (e) => {
+        try {
+          video.currentTime = 0;
+        } catch (e) {}
+        const p = video.play();
+        if (p !== undefined) {
+          p.then(() => {
+            if (poster) poster.style.opacity = '0';
+          }).catch(() => {});
+        }
+        const order = card.querySelector('.work-order');
+        if (order) order.classList.add('is-active');
+      }, true);
+
+      // Mouseleave (capture phase): pause, rewind to 6.0s (website view), and restore poster
+      card.addEventListener('mouseleave', (e) => {
+        if (e && e.stopImmediatePropagation) {
+          e.stopImmediatePropagation();
+        }
+        video.pause();
+        try {
+          video.currentTime = 6.0;
+        } catch (e) {}
+        if (poster) poster.style.opacity = '1';
+        const order = card.querySelector('.work-order');
+        if (order) order.classList.remove('is-active');
+
+        setTimeout(() => {
+          try {
+            if (video.paused && (video.currentTime < 1 || isNaN(video.currentTime))) {
+              video.currentTime = 6.0;
+            }
+          } catch (err) {}
+        }, 50);
+      }, true);
+
+      // Splide carousel on /work
+      if (card.classList.contains('splide__slide')) {
+        const slideObserver = new MutationObserver(() => {
+          const isActive = card.classList.contains('is-active');
+          if (isActive) {
+            try {
+              video.currentTime = 0;
+            } catch (e) {}
+            const p = video.play();
+            if (p !== undefined) {
+              p.then(() => {
+                if (poster) poster.style.opacity = '0';
+              }).catch(() => {});
+            }
+          } else {
+            video.pause();
+            try {
+              video.currentTime = 6.0;
+            } catch (e) {}
+            if (poster) poster.style.opacity = '1';
+          }
+        });
+        slideObserver.observe(card, { attributes: true, attributeFilter: ['class'] });
+      }
+    }
+
+    function scan() {
+      document.querySelectorAll('video[src*="meritpath"]').forEach(bindVideo);
+    }
+
+    scan();
+    // Splide generates clones asynchronously after mount
+    setTimeout(scan, 300);
+    setTimeout(scan, 1000);
   }
 })();
