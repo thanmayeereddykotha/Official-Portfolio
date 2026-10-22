@@ -156,7 +156,7 @@
   /**
    * Project 5 (MeritPath) Initial Position & Hover Controller
    * - Initial/rest position: second 6 (where the website shows up, avoiding empty start)
-   * - On hover: plays from the start (0.0s)
+   * - On hover: plays from second 2 (2.0s) to the end, looping back to second 2
    * - On leave: pauses and resets back to second 6, showing the preview poster
    */
   function initProject5Controller() {
@@ -168,10 +168,13 @@
       const poster = card.querySelector('.project-video_poster, .work-card_video-poster');
       video.muted = true;
       video.preload = 'auto';
+      video.loop = false; // Custom loop starting at 2.0s
+
+      let isHovered = false;
 
       function setPreviewTime() {
         try {
-          if (video.currentTime < 1 || isNaN(video.currentTime)) {
+          if (!isHovered && (video.currentTime < 1 || isNaN(video.currentTime))) {
             video.currentTime = 6.0;
           }
         } catch (e) {}
@@ -184,10 +187,11 @@
       video.addEventListener('loadeddata', setPreviewTime);
       video.addEventListener('canplay', setPreviewTime);
 
-      // Mouseenter (capture phase): start playing from the very beginning (0.0s)
+      // Mouseenter (capture phase): start playing from second 2 (2.0s) to the end
       card.addEventListener('mouseenter', (e) => {
+        isHovered = true;
         try {
-          video.currentTime = 0;
+          video.currentTime = 2.0;
         } catch (e) {}
         const p = video.play();
         if (p !== undefined) {
@@ -201,6 +205,7 @@
 
       // Mouseleave (capture phase): pause, rewind to 6.0s (website view), and restore poster
       card.addEventListener('mouseleave', (e) => {
+        isHovered = false;
         if (e && e.stopImmediatePropagation) {
           e.stopImmediatePropagation();
         }
@@ -221,13 +226,24 @@
         }, 50);
       }, true);
 
+      // When the video reaches the end while active/hovered, loop seamlessly back to 2.0s
+      video.addEventListener('ended', () => {
+        if (isHovered || card.classList.contains('is-active')) {
+          video.currentTime = 2.0;
+          const p = video.play();
+          if (p !== undefined) {
+            p.catch(() => {});
+          }
+        }
+      });
+
       // Splide carousel on /work
       if (card.classList.contains('splide__slide')) {
         const slideObserver = new MutationObserver(() => {
           const isActive = card.classList.contains('is-active');
           if (isActive) {
             try {
-              video.currentTime = 0;
+              video.currentTime = 2.0;
             } catch (e) {}
             const p = video.play();
             if (p !== undefined) {
