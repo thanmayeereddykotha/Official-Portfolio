@@ -31,13 +31,6 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
   let isDeskActive = true;
   let isLoaderFinished = false;
 
-  window.addEventListener('hero:revealed', () => {
-    isLoaderFinished = true;
-    if (typeof window.playSplineDropAnimation === 'function') {
-      window.playSplineDropAnimation();
-    }
-  });
-
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initSplineHero);
   } else {
@@ -151,22 +144,33 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
         set(val) {
           capturedEM = val;
           if (val) {
-            const origActivate = val.activate;
-            val.activate = function () {
-              if (val.handlers?.Start) {
-                const origStartConnect = val.handlers.Start.connect;
-                val.handlers.Start.connect = function () {
-                  startConnectedDeferred = () => {
-                    try {
-                      origStartConnect.call(val.handlers.Start);
-                    } catch (e) {
-                      console.warn('Error running deferred Start connect:', e);
+            let _handlers = {};
+            Object.defineProperty(val, 'handlers', {
+              configurable: true,
+              enumerable: true,
+              get() { return _handlers; },
+              set(newH) {
+                _handlers = new Proxy(newH, {
+                  set(target, prop, value) {
+                    if (prop === 'Start' && value) {
+                      const origConnect = value.connect;
+                      value.connect = function () {
+                        // Defer execution until loader completes
+                        startConnectedDeferred = () => {
+                          try {
+                            origConnect.call(value);
+                          } catch (e) {
+                            console.warn('Error running deferred Start connect:', e);
+                          }
+                        };
+                      };
                     }
-                  };
-                };
+                    target[prop] = value;
+                    return true;
+                  }
+                });
               }
-              return origActivate.call(val);
-            };
+            });
           }
         }
       });
@@ -175,18 +179,15 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
       await app.start(buffer);
       window.splineApp = app;
 
-      // Expose play function
+      // Expose play function (strictly once)
       let hasPlayedDrop = false;
       function triggerDropAnimation() {
         if (hasPlayedDrop) return;
         hasPlayedDrop = true;
         if (typeof startConnectedDeferred === 'function') {
-          startConnectedDeferred();
+          const fn = startConnectedDeferred;
           startConnectedDeferred = null;
-        } else if (app._eventManager?.handlers?.Start) {
-          try {
-            app._eventManager.handlers.Start.connect();
-          } catch (e) {}
+          fn();
         }
       }
 
@@ -196,9 +197,8 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
         triggerDropAnimation();
       }
 
-      // Listen for loader complete / hero revealed events
+      // Listen for loader complete / hero revealed events (only one trigger)
       window.addEventListener('hero:revealed', triggerDropAnimation, { once: true });
-      window.addEventListener('loader:complete', triggerDropAnimation, { once: true });
 
       // Fallback: If loader completed earlier or if no loader, trigger after short delay
       if (!document.getElementById('luxuryLoader')) {
