@@ -4,12 +4,14 @@
  * Features:
  * - Real-time stream download with Luxury Loader progress sync (000% -> 100%)
  * - Native Canvas rendering with zero Spline watermark
- * - Clean White Theme background (#ffffff) matching the website's work page
- * - Drop-in entrance choreography
- * - Interactive Monitor Gateway: Clicking the monitor zooms in, smoothly collapses
- *   the 3D container so it no longer takes space in the home page, and reveals the
- *   portfolio directly.
- * - Floating "3D Desk" button in bottom nav to toggle the 3D desk view back anytime.
+ * - Clean White Theme background (#ffffff) for the 3D desk interior
+ * - Fixed Hero Viewport with Scroll Lock: Page scroll is strictly locked while 3D hero
+ *   is active. User must click the monitor to enter the portfolio website.
+ * - Framed Outer Black Border preserved as requested
+ * - Interactive MacBook Gateway: Clicking the MacBook in the 3D scene navigates to /work (projects)
+ * - Cinematic Monitor Zoom Portal: Clicking the monitor zooms deeply and smoothly into the screen (scale 5.5x),
+ *   creating a complete and seamless flight into the portfolio, then unlocks smooth scrolling.
+ * - Floating "3D Desk" button in bottom nav to restore the 3D desk anytime.
  */
 
 import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build/runtime.js';
@@ -26,6 +28,7 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
   let canvas = null;
   let container = null;
   let isEnteringPortfolio = false;
+  let isDeskActive = true;
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initSplineHero);
@@ -33,16 +36,56 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
     initSplineHero();
   }
 
+  // Lock scroll immediately while page is loading / desk is active
+  lockPageScroll();
+
+  function lockPageScroll() {
+    isDeskActive = true;
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.height = '100%';
+    document.body.style.height = '100%';
+    if (window.lenis && typeof window.lenis.stop === 'function') {
+      window.lenis.stop();
+    }
+  }
+
+  function unlockPageScroll() {
+    isDeskActive = false;
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
+    document.documentElement.style.height = '';
+    document.body.style.height = '';
+    if (window.lenis && typeof window.lenis.start === 'function') {
+      window.lenis.start();
+    }
+  }
+
+  // Prevent scroll events from scrolling the page behind the fixed 3D hero
+  window.addEventListener('wheel', (e) => {
+    if (isDeskActive && !isEnteringPortfolio) {
+      if (!canvas || !canvas.contains(e.target)) {
+        e.preventDefault();
+      }
+    }
+  }, { passive: false });
+
+  window.addEventListener('touchmove', (e) => {
+    if (isDeskActive && !isEnteringPortfolio) {
+      if (!canvas || !canvas.contains(e.target)) {
+        e.preventDefault();
+      }
+    }
+  }, { passive: false });
+
   async function initSplineHero() {
     canvas = document.getElementById('hero3dCanvas');
     container = document.getElementById('hero3dContainer');
     if (!canvas || !container) return;
 
-    // Apply clean white theme styling to 3D container
+    // Interior white theme for 3D desk (outer black frame is preserved on .hero-video_wrapper)
     container.style.background = '#ffffff';
     container.style.transition = 'opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
-    const wrapper = container.closest('.hero-video_wrapper');
-    if (wrapper) wrapper.style.background = '#ffffff';
 
     // 1. Fetch 3D Model with Real-Time Progress Streaming
     try {
@@ -63,10 +106,10 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
       // Load buffer into application
       await app.start(buffer);
 
-      // Remove / hide any embedded iframe from the 3D scene (removes template overlays/hints)
+      // Remove / hide any embedded iframe from the 3D scene
       hideSceneIframes();
 
-      // Disable any watermark in pipeline
+      // Disable watermark again after start
       if (app._renderer?.pipeline?.setWatermark) {
         app._renderer.pipeline.setWatermark(null);
       }
@@ -77,11 +120,12 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
       }
 
       // 4. Setup 3D Interactions
-      setupMonitorInteractions();
+      setupSceneInteractions();
       setupFloatingControls();
 
     } catch (err) {
       console.warn('Spline 3D load error, gracefully revealing page:', err);
+      unlockPageScroll();
       if (window.completeLoader) {
         window.completeLoader('kotha thanmayee reddy — ready.');
       }
@@ -93,14 +137,12 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
    */
   async function fetchModelWithProgress(paths) {
     let response = null;
-    let successfulUrl = null;
 
     for (const url of paths) {
       try {
         const res = await fetch(url);
         if (res.ok) {
           response = res;
-          successfulUrl = url;
           break;
         }
       } catch (e) {
@@ -144,20 +186,20 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
   }
 
   /**
-   * Detects if a Spline object or any of its ancestors is the Monitor or Screen
+   * Detects if a Spline object or any ancestor is the Monitor
    */
   function isMonitorObject(target) {
     let cur = target;
     let depth = 0;
     while (cur && depth < 8) {
       const name = (cur.name || '').toLowerCase();
-      const id = cur.id || cur.uuid || '';
+      const id = (cur.id || cur.uuid || '').toLowerCase();
       if (
         name.includes('monitor') ||
         name.includes('screen') ||
         name.includes('sketchfab_model') ||
         name.includes('monitorfbx') ||
-        name.includes('rootnode') ||
+        name.includes('glass_screen') ||
         id === '1b3d1d3c-823c-4903-ac23-c4119719994f' ||
         id === '28156096-1376-427d-8b5f-cb52931f829b'
       ) {
@@ -170,24 +212,54 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
   }
 
   /**
-   * Sets up mouse events for the monitor and cursor
+   * Detects if a Spline object or any ancestor is the MacBook
    */
-  function setupMonitorInteractions() {
+  function isMacBookObject(target) {
+    let cur = target;
+    let depth = 0;
+    while (cur && depth < 8) {
+      const name = (cur.name || '').toLowerCase();
+      const id = (cur.id || cur.uuid || '').toLowerCase();
+      if (
+        name.includes('macbook') ||
+        name.includes('laptop') ||
+        name.includes('macbook_neo')
+      ) {
+        return true;
+      }
+      cur = cur.parent;
+      depth++;
+    }
+    return false;
+  }
+
+  /**
+   * Sets up 3D interactions:
+   * - Monitor click -> cinematic zoom into monitor screen -> enter portfolio
+   * - MacBook click -> navigate to /work
+   * - Hover state updates cursor & status badge
+   */
+  function setupSceneInteractions() {
     if (!app || !canvas) return;
+
+    const statusText = document.getElementById('modelStatusText');
 
     // Hover detection
     app.addEventListener('mouseHover', (e) => {
       if (isEnteringPortfolio) return;
+
       const isMonitor = isMonitorObject(e.target);
-      canvas.style.cursor = isMonitor ? 'pointer' : 'grab';
-      
-      const prompt = document.getElementById('monitorClickPrompt');
-      if (prompt) {
-        if (isMonitor) {
-          prompt.classList.add('is-hovered');
-        } else {
-          prompt.classList.remove('is-hovered');
-        }
+      const isMacBook = isMacBookObject(e.target);
+
+      if (isMonitor) {
+        canvas.style.cursor = 'pointer';
+        if (statusText) statusText.textContent = 'Monitor • Click to Enter Portfolio';
+      } else if (isMacBook) {
+        canvas.style.cursor = 'pointer';
+        if (statusText) statusText.textContent = 'MacBook • Click to View Projects (/work)';
+      } else {
+        canvas.style.cursor = 'grab';
+        if (statusText) statusText.textContent = 'Interactive 3D Workspace • Monitor: Enter • MacBook: Projects';
       }
     });
 
@@ -196,15 +268,21 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
       if (isEnteringPortfolio) return;
       if (isMonitorObject(e.target)) {
         enterPortfolio();
+      } else if (isMacBookObject(e.target)) {
+        navigateToProjects();
       }
     });
 
     // Native canvas click fallback
     canvas.addEventListener('click', (e) => {
       if (isEnteringPortfolio) return;
-      // If cursor is pointer, user definitely clicked the interactive monitor
       if (canvas.style.cursor === 'pointer') {
-        enterPortfolio();
+        const text = statusText ? statusText.textContent : '';
+        if (text.includes('Projects') || text.includes('MacBook')) {
+          navigateToProjects();
+        } else {
+          enterPortfolio();
+        }
       }
     });
   }
@@ -220,55 +298,96 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
   }
 
   /**
-   * Smoothly transitions from the 3D Desk into the Portfolio
-   * Removes the 3D model container from taking up space in the home page
+   * MacBook navigation to /work
+   */
+  function navigateToProjects() {
+    if (isEnteringPortfolio) return;
+    isEnteringPortfolio = true;
+
+    if (window.gsap) {
+      gsap.to(container, {
+        opacity: 0,
+        scale: 1.06,
+        duration: 0.45,
+        ease: 'power2.in',
+        onComplete: () => {
+          window.location.href = '/work';
+        }
+      });
+    } else {
+      window.location.href = '/work';
+    }
+  }
+
+  /**
+   * Cinematic Zoom-in Animation into Monitor Screen
+   * - Keeps zoom animation completely smooth, unbroken, and dramatic
+   * - Deep zoom directly into the monitor screen (scale: 5.5, origin: 51% 41%)
+   * - Seamlessly transitions into the portfolio website
+   * - Unlocks scroll only after entrance is complete
    */
   function enterPortfolio() {
     if (isEnteringPortfolio) return;
     isEnteringPortfolio = true;
 
     const heroSection = document.querySelector('.section_home-hero');
+    const overlay = container ? container.querySelector('.hero-3d_overlay') : null;
 
-    // 1. Play dramatic zoom effect on canvas & fade out container
+    // Set transform origin centered directly on the monitor screen
+    canvas.style.transformOrigin = '51% 41%';
+
     if (window.gsap) {
+      // 1. Immediately fade out overlay pills so flight is clean
+      if (overlay) {
+        gsap.to(overlay, { opacity: 0, duration: 0.25, ease: 'power2.out' });
+      }
+
+      // 2. Cinematic camera flight directly into the monitor screen
       gsap.to(canvas, {
-        scale: 1.35,
-        opacity: 0,
-        duration: 0.6,
-        ease: 'power3.in'
+        scale: 5.5,
+        duration: 1.25,
+        ease: 'power2.inOut'
       });
 
+      // 3. As monitor screen fills the entire viewport, smoothly fade to the portfolio
       gsap.to(container, {
         opacity: 0,
-        duration: 0.6,
-        ease: 'power3.inOut',
+        delay: 0.88,
+        duration: 0.38,
+        ease: 'power2.inOut',
         onComplete: () => {
-          if (heroSection) {
-            heroSection.style.position = 'absolute';
-            heroSection.style.visibility = 'hidden';
-            heroSection.style.pointerEvents = 'none';
-            heroSection.style.height = '0px';
-            heroSection.style.overflow = 'hidden';
-          }
-          
-          // Smooth scroll to top of homepage content
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-
-          // Show floating 3D Desk toggle in fixed navbar
-          updateNavDeskToggle(true);
+          completePortfolioEntrance(heroSection);
         }
       });
+
     } else {
-      if (heroSection) {
-        heroSection.style.position = 'absolute';
-        heroSection.style.visibility = 'hidden';
-        heroSection.style.pointerEvents = 'none';
-        heroSection.style.height = '0px';
-        heroSection.style.overflow = 'hidden';
-      }
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      updateNavDeskToggle(true);
+      completePortfolioEntrance(heroSection);
     }
+  }
+
+  function completePortfolioEntrance(heroSection) {
+    if (heroSection) {
+      heroSection.style.display = 'none';
+      heroSection.style.visibility = 'hidden';
+      heroSection.style.height = '0px';
+    }
+
+    // Unlock page scrolling for the portfolio
+    unlockPageScroll();
+
+    // Ensure we start at top of portfolio
+    window.scrollTo({ top: 0, behavior: 'instant' });
+
+    // Smooth subtle fade-in of portfolio content
+    if (window.gsap) {
+      gsap.fromTo('.main-wrapper > section:not(.section_home-hero)', 
+        { opacity: 0, y: 24 },
+        { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }
+      );
+    }
+
+    // Show floating "3D Desk" button in fixed bottom nav
+    updateNavDeskToggle(true);
   }
 
   /**
@@ -280,33 +399,35 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
     
     const heroSection = document.querySelector('.section_home-hero');
     if (heroSection) {
-      heroSection.style.position = 'relative';
+      heroSection.style.display = '';
       heroSection.style.visibility = 'visible';
-      heroSection.style.pointerEvents = 'auto';
       heroSection.style.height = 'auto';
-      heroSection.style.overflow = 'visible';
     }
 
-    container.style.opacity = '1';
+    // Re-lock scroll while inside 3D desk
+    lockPageScroll();
+    window.scrollTo({ top: 0, behavior: 'instant' });
+
+    const overlay = container.querySelector('.hero-3d_overlay');
+    if (overlay) overlay.style.opacity = '1';
 
     if (window.gsap) {
       gsap.set(canvas, { scale: 1, opacity: 1 });
       gsap.fromTo(container, 
-        { opacity: 0, scale: 0.96 },
+        { opacity: 0, scale: 0.97 },
         { opacity: 1, scale: 1, duration: 0.75, ease: 'power3.out' }
       );
     } else {
-      canvas.style.opacity = '1';
       canvas.style.transform = 'none';
+      canvas.style.opacity = '1';
       container.style.opacity = '1';
     }
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
     updateNavDeskToggle(false);
   }
 
   /**
-   * Adds the floating prompt over the 3D viewport and adds the nav desk toggle
+   * Sets up direct click button & nav desk toggle
    */
   function setupFloatingControls() {
     const directBtn = document.getElementById('heroEnterDirectBtn');
@@ -314,7 +435,7 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
       directBtn.addEventListener('click', enterPortfolio);
     }
 
-    // 2. Add "3D Desk" toggle to the fixed bottom navigation
+    // Add "3D Desk" toggle to the fixed bottom navigation
     setupNavDeskToggle();
   }
 
@@ -327,7 +448,7 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
       deskLink.id = 'navDeskToggle';
       deskLink.className = 'nav-link_wrapper';
       deskLink.href = '#';
-      deskLink.style.display = 'none'; // hidden initially while desk is open
+      deskLink.style.display = 'none'; // hidden while desk is active
       deskLink.innerHTML = `
         <div class="nav-dot w-embed">
           <svg fill="none" height="6" viewBox="0 0 6 6" width="6" xmlns="http://www.w3.org/2000/svg">
@@ -354,7 +475,8 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
   // Expose global controller
   window.SplineHero = {
     enterPortfolio,
-    reopenDesk
+    reopenDesk,
+    navigateToProjects
   };
 
 })();
