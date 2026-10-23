@@ -965,6 +965,34 @@ html.wf-design-mode .loading {
     transform: translateY(-2px);
     box-shadow: 0 8px 28px rgba(0,0,0,0.18) !important;
   }
+
+  /* Approach Overlay Grid Items & Ratio Fitting */
+  .approach-overlay_grid-item {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    background: rgba(18, 22, 26, 0.9);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease, border-color 0.35s ease;
+  }
+
+  .approach-overlay_grid-item:hover {
+    transform: scale(1.035);
+    border-color: rgba(255, 255, 255, 0.35);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75);
+    z-index: 10;
+  }
+
+  .approach-overlay_img.full-image {
+    position: absolute;
+    inset: 0%;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
 }
 </style></div><main class="main-wrapper"><section class="section_home-hero"><div class="hero-video_wrapper" style="position: relative; overflow: hidden; background: #ffffff;">
 <div id="hero3dContainer" style="width: 100%; height: 100%; min-height: 85vh; position: relative; overflow: hidden; background: radial-gradient(circle at center, #ffffff 0%, #ededf0 100%);">
@@ -1173,7 +1201,32 @@ html.wf-design-mode .loading {
 <circle cx="2" cy="2" fill="white" r="2"></circle>
 </svg></div><div class="work-order_text">05</div></div><div class="spacer-1"></div><div class="text-size-large typeface-abc-synt">MeritPath Career Analytics Framework</div><div class="spacer-0-75"></div><div class="project-info_details text-size-small typeface-aeonik">Decision Modeling &amp; Labor Market Analytics</div></div></a></div><div class="project-card w-dyn-item" data-aspect-ratio="widescreen" data-coming-soon="" role="listitem"><a class="project-card-link w-inline-block" href="https://github.com/thanmayeereddykotha" target="_blank"><div class="project-image_wrapper"><img alt="" class="full-width" loading="lazy" sizes="100vw" src="https://cdn.prod.website-files.com/68924abc8a62e2a2be385f9a/6aa17b1896fa22ae33e4427b_quill-orki-thumbnail.webp" srcset="https://cdn.prod.website-files.com/68924abc8a62e2a2be385f9a/6aa17b1896fa22ae33e4427b_quill-orki-thumbnail-p-500.webp 500w, https://cdn.prod.website-files.com/68924abc8a62e2a2be385f9a/6aa17b1896fa22ae33e4427b_quill-orki-thumbnail-p-800.webp 800w, https://cdn.prod.website-files.com/68924abc8a62e2a2be385f9a/6aa17b1896fa22ae33e4427b_quill-orki-thumbnail-p-1080.webp 1080w, https://cdn.prod.website-files.com/68924abc8a62e2a2be385f9a/6aa17b1896fa22ae33e4427b_quill-orki-thumbnail.webp 2880w"/></div><div class="spacer-2"></div><div class="project-info_wrapper"><div class="work-order" data-wf--work-order--variant="homepage"><div class="work-order_svg w-embed"><svg fill="none" height="4" viewbox="0 0 4 4" width="4" xmlns="http://www.w3.org/2000/svg">
 <circle cx="2" cy="2" fill="white" r="2"></circle>
-</svg></div><div class="work-order_text">06</div></div><div class="spacer-1"></div><div class="text-size-large typeface-abc-synt">Supply Chain Logistics &amp; Route Optimization</div><div class="spacer-0-75"></div><div class="project-info_details text-size-small typeface-aeonik">Linear Programming &amp; Operations Research</div></div></a></div></div></div></div></div><div class="spacer-12-5"></div></section><section class="section_home-approach"><div class="padding-global"><div class="container-large"><div class="w-layout-grid grid"><div class="grid-block vertical-boder" id="w-node-f3220910-298b-5ffd-5c96-d80fd59f2ef9-be385f69"><div class="spacer-7-5"></div><div class="text-size-small">my approach</div><div class="spacer-12-5 hide-tablet"></div></div><div class="grid-block" id="w-node-_3f2f9ed3-7f2b-efa9-a38c-98007f72490d-be385f69"><div class="spacer-7-5 hide-tablet"></div><h6 class="typeface-abc-synt">I start by diving deeply into your core business challenges, data infrastructure, and strategic ambitions. Then I build from rigorous statistical exploration, predictive modeling, and market evidence. I work across data analytics, financial strategy, and scalable technology—not in silos, but in one unified, outcome-driven process. Every model, dashboard, and analytical system is engineered to scale, adapt, and deliver measurable ROI. I combine technical depth with executive insight to turn complex data into strategic conviction.</h6><div class="spacer-2"></div><a class="button btn-approach w-button" href="#">Show me</a><div class="spacer-12-5"></div></div></div></div></div><div class="approach-overlay" data-overlay-layout=""><div class="approach-overlay_bg"></div><div class="w-layout-grid approach-overlay_grid"><div class="approach-overlay_grid-item" data-overlay-media="1"><img alt="" class="approach-overlay_img full-image" loading="lazy" src="https://cdn.prod.website-files.com/68924abc8a62e2a2be385f87/68924abc8a62e2a2be385fef_process-1.png"/></div><div class="approach-overlay_grid-item" data-overlay-media="2"><img alt="" class="approach-overlay_img full-image" loading="lazy" src="https://cdn.prod.website-files.com/68924abc8a62e2a2be385ff0_process-2.png"/></div><div class="approach-overlay_grid-item" data-overlay-media="3"><img alt="" class="approach-overlay_img full-image" loading="lazy" src="https://cdn.prod.website-files.com/68924abc8a62e2a2be385ff1_process-3.png"/></div><div class="approach-overlay_grid-item" data-overlay-media="4"><img alt="" class="approach-overlay_img full-image" loading="lazy" src="https://cdn.prod.website-files.com/68924abc8a62e2a2be385ff2_process-4.png"/></div><div class="approach-overlay_grid-item" data-overlay-media="5"><img alt="" class="approach-overlay_img full-image" loading="lazy" src="https://cdn.prod.website-files.com/68924abc8a62e2a2be385fed_process-7.png"/></div><div class="approach-overlay_grid-item" data-overlay-media="6"><img alt="" class="approach-overlay_img full-image" loading="lazy" src="https://cdn.prod.website-files.com/68924abc8a62e2a2be385fee_process-5.png"/></div><div class="approach-overlay_grid-item" data-overlay-media="7"><img alt="" class="approach-overlay_img full-image" loading="lazy" src="https://cdn.prod.website-files.com/68924abc8a62e2a2be385ff3_modern.gif"/></div><div class="approach-overlay_grid-item" data-overlay-media="8"><div class="approach-overlay_img full-image w-background-video w-background-video-atom" data-autoplay="true" data-loop="true" data-poster-url="https://cdn.prod.website-files.com/6807a0b159ad7ba001983ddd%2F684315601ccda0c680e6cca3_alchemy-poster-00001.jpg" data-video-urls="https://cdn.prod.website-files.com/68924abc8a62e2a2be385f87/68924abc8a62e2a2be386004_alchemy-transcode.mp4,https://cdn.prod.website-files.com/68924abc8a62e2a2be385f87/68924abc8a62e2a2be386004_alchemy-transcode.webm" data-wf-ignore="true"><video autoplay="" data-object-fit="cover" data-wf-ignore="true" id="6d04fe82-f0c1-07e1-a212-469001299991-video" loop="" muted="" playsinline="" style='background-image:url("https://cdn.prod.website-files.com/6807a0b159ad7ba001983ddd%2F684315601ccda0c680e6cca3_alchemy-poster-00001.jpg")'><source data-wf-ignore="true" src="https://cdn.prod.website-files.com/68924abc8a62e2a2be385f87/68924abc8a62e2a2be386004_alchemy-transcode.mp4"/><source data-wf-ignore="true" src="https://cdn.prod.website-files.com/68924abc8a62e2a2be385f87/68924abc8a62e2a2be386004_alchemy-transcode.webm"/></video></div></div></div></div></section><section class="section_home-statement"><div class="padding-global"><div class="container-large"><div class="w-layout-grid grid"><div class="grid-block vertical-boder home-statement_container" id="w-node-d91cafbd-7c8f-ea97-ef19-4feb6b481799-be385f69"><div class="spacer-7-5"></div><div class="text-size-small">core conviction</div></div></div><h1 class="home-statement">For me, data isn’t decoration. It’s strategic conviction. It clarifies what’s uncertain, strengthens what matters, and turns complex information into decisive business momentum.</h1></div></div></section>
+</svg></div><div class="work-order_text">06</div></div><div class="spacer-1"></div><div class="text-size-large typeface-abc-synt">Supply Chain Logistics &amp; Route Optimization</div><div class="spacer-0-75"></div><div class="project-info_details text-size-small typeface-aeonik">Linear Programming &amp; Operations Research</div></div></a></div></div></div></div></div><div class="spacer-12-5"></div></section><section class="section_home-approach"><div class="padding-global"><div class="container-large"><div class="w-layout-grid grid"><div class="grid-block vertical-boder" id="w-node-f3220910-298b-5ffd-5c96-d80fd59f2ef9-be385f69"><div class="spacer-7-5"></div><div class="text-size-small">my approach</div><div class="spacer-12-5 hide-tablet"></div></div><div class="grid-block" id="w-node-_3f2f9ed3-7f2b-efa9-a38c-98007f72490d-be385f69"><div class="spacer-7-5 hide-tablet"></div><h6 class="typeface-abc-synt">I start by diving deeply into your core business challenges, data infrastructure, and strategic ambitions. Then I build from rigorous statistical exploration, predictive modeling, and market evidence. I work across data analytics, financial strategy, and scalable technology—not in silos, but in one unified, outcome-driven process. Every model, dashboard, and analytical system is engineered to scale, adapt, and deliver measurable ROI. I combine technical depth with executive insight to turn complex data into strategic conviction.</h6><div class="spacer-2"></div><a class="button btn-approach w-button" href="#">Show me</a><div class="spacer-12-5"></div></div></div></div></div><div class="approach-overlay" data-overlay-layout=""><div class="approach-overlay_bg"></div><div class="w-layout-grid approach-overlay_grid">
+  <div class="approach-overlay_grid-item" data-overlay-media="1">
+    <img alt="Logistics BI Analytics Dashboard" class="approach-overlay_img full-image" loading="lazy" src="/assets/images/anlaysis1.avif" onerror="this.src='/assets/images/analysis1.png'"/>
+  </div>
+  <div class="approach-overlay_grid-item" data-overlay-media="2">
+    <img alt="BI Workspace Heatmap &amp; Deletions Analysis" class="approach-overlay_img full-image" loading="lazy" src="/assets/images/analysis2.png"/>
+  </div>
+  <div class="approach-overlay_grid-item" data-overlay-media="3">
+    <img alt="Telemetry Distribution Histograms &amp; Performance Metrics" class="approach-overlay_img full-image" loading="lazy" src="/assets/images/analysis3.jpg"/>
+  </div>
+  <div class="approach-overlay_grid-item" data-overlay-media="4">
+    <img alt="Predictive Analytics &amp; Conversion Modeling" class="approach-overlay_img full-image" loading="lazy" src="/assets/images/analysis4.jpg"/>
+  </div>
+  <div class="approach-overlay_grid-item" data-overlay-media="5">
+    <img alt="Cohort Analysis Report &amp; Retention Heatmap" class="approach-overlay_img full-image" loading="lazy" src="/assets/images/analysis5.jpg"/>
+  </div>
+  <div class="approach-overlay_grid-item" data-overlay-media="6">
+    <img alt="Multi-Channel Performance Scorecard &amp; Sparklines" class="approach-overlay_img full-image" loading="lazy" src="/assets/images/analysis6.jpg"/>
+  </div>
+  <div class="approach-overlay_grid-item" data-overlay-media="7">
+    <img alt="Quantitative Financial Timeseries &amp; Algorithmic Terminal" class="approach-overlay_img full-image" loading="lazy" src="/assets/images/analysis7.jpg"/>
+  </div>
+  <div class="approach-overlay_grid-item" data-overlay-media="8">
+    <img alt="Financial Market Dynamics &amp; Growth Velocity" class="approach-overlay_img full-image" loading="lazy" src="/assets/images/analysis8.jpg"/>
+  </div>
+</div></div></section><section class="section_home-statement"><div class="padding-global"><div class="container-large"><div class="w-layout-grid grid"><div class="grid-block vertical-boder home-statement_container" id="w-node-d91cafbd-7c8f-ea97-ef19-4feb6b481799-be385f69"><div class="spacer-7-5"></div><div class="text-size-small">core conviction</div></div></div><h1 class="home-statement">For me, data isn’t decoration. It’s strategic conviction. It clarifies what’s uncertain, strengthens what matters, and turns complex information into decisive business momentum.</h1></div></div></section>
 
 </main><footer class="footer"><div class="padding-global"><div class="container-large"><div class="footer_wrapper"><h5 class="text-style-allcaps text-weight-semibold text-align-center">We are industry &amp; time-zone agnostic.<br/></h5><h5 class="text-style-allcaps text-weight-semibold center-tablet">Because design isn’t limited by context, only by imagination.<br/></h5><div class="display-inlineflex footer-icon"><h5 class="text-style-allcaps text-weight-semibold text-align-center"><span class="text-color-secondary" style="color: #b8bcc0 !important;">Let’s make something that matters. </span></h5><div class="w-embed"><svg fill="none" height="16" viewbox="0 0 16 16" width="16" xmlns="http://www.w3.org/2000/svg">
 <rect fill="white" height="16" style="mix-blend-mode:multiply" width="16"></rect>
