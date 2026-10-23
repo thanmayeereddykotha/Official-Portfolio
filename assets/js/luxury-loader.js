@@ -43,7 +43,8 @@
       progress: 0,
       targetProgress: 0,
       textRevealed: false,
-      isExiting: false
+      isExiting: false,
+      isDrivenBy3D: false
     };
 
     // 1. Initial State: ONLY loading bar and percentage counter show
@@ -144,32 +145,46 @@
       }
     }
 
-    // 3. Monitor Real Page Lifecycle Milestones
-    setProgress(0.18, 'initializing environment...');
+    // Expose dynamic progress updater for 3D model synchronization
+    window.setLoaderProgress = function(val, label) {
+      state.isDrivenBy3D = true;
+      setProgress(val, label);
+    };
+
+    window.completeLoader = function(label) {
+      setProgress(1.0, label || 'kotha thanmayee reddy — ready.');
+    };
+
+    // 3. Page Lifecycle Initialization
+    setProgress(0.08, 'initializing 3d neural viewport...');
 
     // Fonts ready milestone
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(() => {
-        setProgress(0.48, 'calibrating typography & 3d viewport...');
+        if (!state.isDrivenBy3D) {
+          setProgress(0.24, 'calibrating typography...');
+        }
       });
-    } else {
-      setTimeout(() => setProgress(0.48), 300);
     }
 
-    // Window load milestone
+    // Window load milestone (only advances if 3D loader hasn't taken over)
     window.addEventListener('load', () => {
-      setProgress(0.85, 'connecting telemetry & projects...');
-      setTimeout(() => {
-        setProgress(1.0, 'kotha thanmayee reddy — ready.');
-      }, 350);
+      if (!state.isDrivenBy3D) {
+        setProgress(0.65, 'connecting telemetry & projects...');
+        setTimeout(() => {
+          if (!state.isDrivenBy3D) {
+            setProgress(1.0, 'kotha thanmayee reddy — ready.');
+          }
+        }, 400);
+      }
     });
 
-    // Safety timeout: Maximum 2.5s loader wait time
+    // Safety timeout: Maximum wait time fallback if 3D is taking abnormally long or fails
     setTimeout(() => {
       if (state.progress < 1) {
         setProgress(1.0, 'kotha thanmayee reddy — ready.');
       }
-    }, 2500);
+    }, 18000);
 
     // 4. Orchestrated Exit Transition to Front Page
     function executeExitTransition() {

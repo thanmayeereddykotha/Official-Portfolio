@@ -947,18 +947,37 @@ html.wf-design-mode .loading {
   [data-overlay-layout="2"] [data-overlay-media="8"] {
     grid-area: 3 / 7 / 7 / 9;
   }
+  /* Hide Spline Watermark & Template IFrames globally */
+  #spline-watermark,
+  .spline-watermark,
+  a[href*="spline.design"],
+  [data-spline-watermark],
+  #hero3dContainer iframe {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  .hero-enter-btn:hover {
+    background-color: #111111 !important;
+    color: #ffffff !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.18) !important;
+  }
 }
-</style></div><main class="main-wrapper"><section class="section_home-hero"><div class="hero-video_wrapper" style="position: relative; overflow: hidden; background: #080c09;">
-<div id="hero3dContainer" style="width: 100%; height: 100%; min-height: 75vh; position: relative; overflow: hidden; background: radial-gradient(circle at center, #111a13 0%, #060907 100%);">
-<canvas id="hero3dCanvas" style="width: 100%; height: 100%; display: block; cursor: grab;"></canvas>
-<div class="hero-3d_overlay" style="position: absolute; bottom: 24px; left: 24px; right: 24px; display: flex; justify-content: space-between; align-items: center; pointer-events: none; z-index: 10; flex-wrap: wrap; gap: 12px;">
-<div style="display: flex; align-items: center; gap: 8px; font-family: var(--font--sans-serif); font-size: 0.75rem; letter-spacing: 0.05em; text-transform: uppercase; color: #d0d4d8; background: rgba(0,0,0,0.65); backdrop-filter: blur(10px); padding: 8px 16px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.18);">
-<span style="width: 7px; height: 7px; border-radius: 50%; background: #ffffff; display: inline-block; box-shadow: 0 0 10px rgba(255,255,255,0.4);"></span>
-<span id="modelStatusText">Interactive 3D Viewport • Drag to Orbit</span>
+</style></div><main class="main-wrapper"><section class="section_home-hero"><div class="hero-video_wrapper" style="position: relative; overflow: hidden; background: #ffffff;">
+<div id="hero3dContainer" style="width: 100%; height: 100%; min-height: 85vh; position: relative; overflow: hidden; background: radial-gradient(circle at center, #ffffff 0%, #ededf0 100%);">
+<canvas id="hero3dCanvas" style="width: 100%; height: 100%; display: block; cursor: grab; background: #ffffff;"></canvas>
+<div class="hero-3d_overlay" style="position: absolute; bottom: clamp(76px, 10vh, 104px); left: 24px; right: 24px; display: flex; justify-content: space-between; align-items: center; pointer-events: none; z-index: 10; flex-wrap: wrap; gap: 12px;">
+<div style="display: flex; align-items: center; gap: 8px; font-family: var(--font--sans-serif); font-size: 0.75rem; letter-spacing: 0.05em; text-transform: uppercase; color: #222222; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 8px 18px; border-radius: 999px; border: 1px solid rgba(0, 0, 0, 0.12); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);">
+<span style="width: 7px; height: 7px; border-radius: 50%; background: #111111; display: inline-block;"></span>
+<span id="modelStatusText">Interactive 3D Workspace • Drag to Orbit</span>
 </div>
-<div style="font-family: var(--font--sans-serif); font-size: 0.75rem; color: #aaa; background: rgba(0,0,0,0.65); backdrop-filter: blur(10px); padding: 8px 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.08);">
-        Drop <code style="color: #d0d4d8; background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px;">assets/model.glb</code> to load custom 3D model
-      </div>
+<button id="heroEnterDirectBtn" class="hero-enter-btn" style="pointer-events: auto; display: flex; align-items: center; gap: 10px; font-family: var(--font--sans-serif); font-size: 0.78rem; font-weight: 500; letter-spacing: 0.03em; color: #111111; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 8px 20px; border-radius: 999px; border: 1px solid rgba(0, 0, 0, 0.16); box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08); cursor: pointer; transition: all 0.25s ease;">
+<span>Click Monitor to Enter Portfolio</span>
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+</button>
 </div>
 </div>
 </div><div class="spacer-3-75"></div></section><section class="section_home-services">
@@ -1221,15 +1240,11 @@ https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js
 <script src="https://gd25sz.csb.app/home-work.js"></script>
 <script src="https://gd25sz.csb.app/home-overlay.js"></script>
 
-<!-- Three.js & Loaders for Interactive 3D Model Viewport -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-<script src="/assets/js/hero-3d.js"></script>
+<script src="/assets/js/luxury-loader.js"></script>
+<script type="module" src="/assets/js/spline-hero.js"></script>
 <script src="/assets/js/github-telemetry.js"></script>
 <script src="/assets/js/projects-cms.js"></script>
 <script src="/assets/js/screenpal-hover.js"></script>
-<script src="/assets/js/luxury-loader.js"></script>
 
 <script>
   // Onda-style skills accordion tab toggle

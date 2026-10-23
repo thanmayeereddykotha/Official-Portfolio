@@ -4,11 +4,11 @@
  */
 
 :root {
-  --loader-bg: #090a0b;
-  --loader-text: #ffffff;
-  --loader-light-grey: #b8bcc0;
-  --loader-muted: rgba(255, 255, 255, 0.45);
-  --loader-hairline: rgba(255, 255, 255, 0.14);
+  --loader-bg: #eaeaea;
+  --loader-text: #111111;
+  --loader-light-grey: #444444;
+  --loader-muted: rgba(0, 0, 0, 0.55);
+  --loader-hairline: rgba(0, 0, 0, 0.12);
 }
 
 /* Page Veil for seamless transition */
@@ -135,8 +135,8 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: #ffffff;
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+  background-color: #111111;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
   animation: loaderPulse 1.8s ease-in-out infinite;
 }
 
@@ -175,17 +175,17 @@
   transform: translateY(-50%);
 }
 
-/* Active Progress Track Line in Pure White */
+/* Active Progress Track Line in Monochromatic Dark */
 .loader__track-fill {
   position: absolute;
   left: 0;
   top: 50%;
   height: 1px;
   width: 100%;
-  background: #ffffff;
+  background: #111111;
   transform-origin: left;
   transform: translateY(-50%) scaleX(0);
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
 }
 
 /* Floating Travel Cursor with 3-digit Padded Percentage in Monochromatic White/Grey */
@@ -204,18 +204,18 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.18);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   padding: 4px 12px;
   border-radius: 999px;
-  color: #ffffff;
+  color: #111111;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-size: clamp(0.72rem, 1.1vw, 0.88rem);
   font-weight: 600;
   letter-spacing: 0.08em;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
 /* Row 3: Bottom Telemetry & Bio Row */
@@ -250,9 +250,9 @@
   width: 100%;
   height: 100%;
   pointer-events: none;
-  opacity: 0.035;
+  opacity: 0.02;
   z-index: 99998;
-  mix-blend-mode: overlay;
+  mix-blend-mode: multiply;
 }
 
 /* Responsive Breakpoints */
