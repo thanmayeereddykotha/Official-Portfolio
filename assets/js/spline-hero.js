@@ -673,6 +673,15 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
   }
   window.copyTextToClipboard = copyTextToClipboard;
 
+  // Lifecycle memory cleanup on page unload
+  window.addEventListener('beforeunload', () => {
+    try {
+      if (app && typeof app.dispose === 'function') {
+        app.dispose();
+      }
+    } catch (_) {}
+  });
+
   // Expose global controller
   window.SplineHero = {
     enterPortfolio,
