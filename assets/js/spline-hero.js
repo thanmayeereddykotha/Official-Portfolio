@@ -215,7 +215,7 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
 
       // 3. Complete Luxury Loader
       if (window.completeLoader) {
-        window.completeLoader('kotha thanmayee reddy — ready.');
+        window.completeLoader('Kotha Thanmayee Reddy — ready.');
       }
 
       // 4. Setup 3D Interactions
@@ -226,7 +226,7 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
       console.warn('Spline 3D load error, gracefully revealing page:', err);
       unlockPageScroll();
       if (window.completeLoader) {
-        window.completeLoader('kotha thanmayee reddy — ready.');
+        window.completeLoader('Kotha Thanmayee Reddy — ready.');
       }
     }
   }

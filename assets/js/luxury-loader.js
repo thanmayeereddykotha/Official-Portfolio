@@ -44,7 +44,7 @@
       { progress: 0.38, text: 'calibrating 3d neural viewport...' },
       { progress: 0.65, text: 'connecting github contribution matrix...' },
       { progress: 0.88, text: 'compiling analytics & mba case studies...' },
-      { progress: 1.00, text: 'kotha thanmayee reddy — ready.' }
+      { progress: 1.00, text: 'Kotha Thanmayee Reddy — ready.' }
     ];
 
     const state = {
@@ -160,7 +160,7 @@
     };
 
     window.completeLoader = function(label) {
-      setProgress(1.0, label || 'kotha thanmayee reddy — ready.');
+      setProgress(1.0, label || 'Kotha Thanmayee Reddy — ready.');
     };
 
     // 3. Page Lifecycle Initialization
@@ -181,7 +181,7 @@
         setProgress(0.65, 'connecting telemetry & projects...');
         setTimeout(() => {
           if (!state.isDrivenBy3D) {
-            setProgress(1.0, 'kotha thanmayee reddy — ready.');
+            setProgress(1.0, 'Kotha Thanmayee Reddy — ready.');
           }
         }, 400);
       }
@@ -190,7 +190,7 @@
     // Safety timeout: Maximum wait time fallback if 3D is taking abnormally long or fails
     setTimeout(() => {
       if (state.progress < 1) {
-        setProgress(1.0, 'kotha thanmayee reddy — ready.');
+        setProgress(1.0, 'Kotha Thanmayee Reddy — ready.');
       }
     }, 18000);
 
