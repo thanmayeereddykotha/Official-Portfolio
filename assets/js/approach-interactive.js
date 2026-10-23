@@ -1,11 +1,12 @@
 /**
- * Approach Interactive Layout & Drag Controller
+ * Approach Showcase Interactive Controller
  * 
- * Provides interactive control over the 8 analytical showcases in the "My Approach" overlay:
- * - 4 Curated Layout Presets: Mosaic, Diagonal, Bento, Orbit
- * - Dynamic Shuffle: Fluidly reassigns image positions with GSAP Flip
- * - Freeform Drag & Reposition: Grab and drag ANY card to place it anywhere on screen
- * - Reset & Close Controls: Quick restore to organized grid
+ * Provides smooth open/close interactions and animations for the 8 analytical
+ * showcases in the "My Approach" overlay:
+ * - Smooth stagger reveal with GSAP timeline
+ * - Smooth Lenis scroll alignment
+ * - Accessible close triggers (Close button, background click, Esc key)
+ * - Permanently locked curated positions specified by user
  */
 
 (function initApproachInteractive() {
@@ -16,24 +17,11 @@
     const homeOverlayImages = Array.from(document.querySelectorAll('.approach-overlay_grid-item'));
     const homeOverlayTrigger = document.querySelector('.btn-approach');
     const homeSection = document.querySelector('.section_home-approach');
-    const closeBtn = document.getElementById('btnCloseApproachDock');
-    const layoutBtns = Array.from(document.querySelectorAll('.approach-layout-btn'));
-    const shuffleBtn = document.getElementById('btnShuffleApproach');
-    const resetBtn = document.getElementById('btnResetApproach');
-    const copyCoordsBtn = document.getElementById('btnCopyApproachCoords');
-    const copyPositionsBtn = document.getElementById('btnCopyApproachPositions');
-    const resetPositionsBtn = document.getElementById('btnResetApproachPositions');
+    const closeBtn = document.getElementById('btnCloseApproachOverlay');
 
     if (!homeOverlay || !homeOverlayTrigger) return;
 
     let overlayOpen = false;
-    let currentLayout = '1';
-
-    // Store custom drag offsets per item
-    const customPositions = new Map();
-    homeOverlayImages.forEach((item, index) => {
-      customPositions.set(item, { x: 0, y: 0 });
-    });
 
     // Initial state: hidden
     if (window.gsap) {
@@ -44,7 +32,7 @@
       homeOverlay.style.opacity = '0';
     }
 
-    // Set default layout
+    // Set default locked layout
     homeOverlay.setAttribute('data-overlay-layout', '1');
 
     /**
@@ -104,7 +92,7 @@
       if (window.gsap) {
         gsap.to(homeOverlay, {
           autoAlpha: 0,
-          duration: 0.4,
+          duration: 0.35,
           ease: 'power2.out',
           onComplete: () => {
             gsap.set(homeOverlay, { display: 'none' });
@@ -136,309 +124,26 @@
       });
     }
 
-    // Clicking the background closes overlay (ignoring clicks on cards or controls)
+    // Clicking the backdrop closes overlay (ignoring clicks on cards)
     homeOverlay.addEventListener('click', (e) => {
       const isCard = e.target.closest('.approach-overlay_grid-item');
-      const isControls = e.target.closest('.approach-controls_dock');
-      if (!isCard && !isControls) {
+      if (!isCard) {
         closeOverlay();
       }
     });
 
-    /**
-     * Switch Layout with GSAP Flip
-     */
-    function switchLayout(layoutNum) {
-      currentLayout = String(layoutNum);
-
-      // Reset manual drag transforms so grid positions align cleanly
-      homeOverlayImages.forEach(item => {
-        const pos = customPositions.get(item);
-        if (pos) { pos.x = 0; pos.y = 0; }
-        if (window.gsap) {
-          gsap.to(item, { x: 0, y: 0, duration: 0.35, ease: 'power2.out' });
-        } else {
-          item.style.transform = '';
-        }
-      });
-
-      // Update button active state
-      layoutBtns.forEach(btn => {
-        if (btn.getAttribute('data-layout') === currentLayout) {
-          btn.classList.add('is-active');
-        } else {
-          btn.classList.remove('is-active');
-        }
-      });
-
-      if (window.gsap && window.Flip) {
-        const state = Flip.getState(homeOverlayImages);
-        homeOverlay.setAttribute('data-overlay-layout', currentLayout);
-        Flip.from(state, {
-          duration: 0.65,
-          ease: 'power3.inOut',
-          stagger: 0.03
-        });
-      } else {
-        homeOverlay.setAttribute('data-overlay-layout', currentLayout);
+    // Esc key closes overlay
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && overlayOpen) {
+        closeOverlay();
       }
-    }
-
-    layoutBtns.forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const layoutNum = btn.getAttribute('data-layout');
-        if (layoutNum) switchLayout(layoutNum);
-      });
     });
 
-    /**
-     * Shuffle / Randomize Positions
-     * Shuffles the assignment of media slots among the cards with fluid motion
-     */
-    if (shuffleBtn) {
-      shuffleBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-
-        // Reset manual drag transforms
-        homeOverlayImages.forEach(item => {
-          const pos = customPositions.get(item);
-          if (pos) { pos.x = 0; pos.y = 0; }
-          item.style.transform = '';
-        });
-
-        // Toggle or randomize layout and shuffle slot media indexes
-        const nextLayout = currentLayout === '1' ? '2' : (currentLayout === '2' ? '3' : (currentLayout === '3' ? '4' : '1'));
-        
-        if (window.gsap && window.Flip) {
-          const state = Flip.getState(homeOverlayImages);
-
-          // Randomize slots: shuffle numbers 1..8 among the 8 elements
-          const slots = [1, 2, 3, 4, 5, 6, 7, 8].sort(() => Math.random() - 0.5);
-          homeOverlayImages.forEach((img, i) => {
-            img.setAttribute('data-overlay-media', slots[i]);
-          });
-
-          homeOverlay.setAttribute('data-overlay-layout', nextLayout);
-          currentLayout = nextLayout;
-
-          layoutBtns.forEach(btn => {
-            if (btn.getAttribute('data-layout') === currentLayout) {
-              btn.classList.add('is-active');
-            } else {
-              btn.classList.remove('is-active');
-            }
-          });
-
-          Flip.from(state, {
-            duration: 0.7,
-            ease: 'power3.inOut',
-            stagger: 0.04
-          });
-        }
-      });
-    }
-
-    /**
-     * Reset Positions to Default Grid
-     */
-    if (resetBtn) {
-      resetBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        // Restore default 1..8 slot mapping
-        homeOverlayImages.forEach((img, i) => {
-          img.setAttribute('data-overlay-media', i + 1);
-          const pos = customPositions.get(img);
-          if (pos) { pos.x = 0; pos.y = 0; }
-        });
-
-        if (window.gsap) {
-          gsap.to(homeOverlayImages, {
-            x: 0,
-            y: 0,
-            scale: 1,
-            duration: 0.5,
-            ease: 'back.out(1.5)',
-            stagger: 0.03
-          });
-        } else {
-          homeOverlayImages.forEach(img => img.style.transform = '');
-        }
-
-        switchLayout('1');
-      });
-    }
-
-    /**
-     * Copy Approach Showcase Coordinates to Clipboard
-     * Reads the exact pixel coordinates, drag translation, and CSS for all 8 cards
-     */
-    function copyApproachPositions() {
-      const parentRect = homeOverlay.getBoundingClientRect();
-      const imagesData = {};
-
-      homeOverlayImages.forEach((card, index) => {
-        const mediaId = card.getAttribute('data-overlay-media') || (index + 1);
-        const pos = customPositions.get(card) || { x: 0, y: 0 };
-        const rect = card.getBoundingClientRect();
-        const imgEl = card.querySelector('img');
-        const title = imgEl?.getAttribute('alt') || `Showcase ${mediaId}`;
-
-        const leftPx = Math.round(rect.left - parentRect.left);
-        const topPx = Math.round(rect.top - parentRect.top);
-
-        imagesData[`image_${mediaId}`] = {
-          title: title,
-          left: `${leftPx}px`,
-          top: `${topPx}px`,
-          offsetX: Math.round(pos.x),
-          offsetY: Math.round(pos.y),
-          css: `left: ${leftPx}px; top: ${topPx}px;`
-        };
-      });
-
-      const exportPayload = {
-        approachImagePositions: imagesData
-      };
-
-      const jsonString = JSON.stringify(exportPayload, null, 2);
-
-      if (window.copyTextToClipboard) {
-        window.copyTextToClipboard(jsonString).then(() => {
-          if (window.showToast) window.showToast('Image positions copied! Paste in chat to fix.');
-        });
-      } else if (navigator.clipboard) {
-        navigator.clipboard.writeText(jsonString).then(() => {
-          if (window.showToast) window.showToast('Image positions copied! Paste in chat to fix.');
-        });
-      }
-    }
-
-    function resetApproachPositions() {
-      homeOverlayImages.forEach((card) => {
-        const pos = customPositions.get(card);
-        if (pos) { pos.x = 0; pos.y = 0; }
-        if (window.gsap) {
-          gsap.to(card, { x: 0, y: 0, scale: 1, duration: 0.45, ease: 'power2.out' });
-        } else {
-          card.style.transform = '';
-        }
-      });
-      if (window.showToast) window.showToast('Image positions reset to default');
-    }
-
-    if (copyPositionsBtn) {
-      copyPositionsBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        copyApproachPositions();
-      });
-    }
-
-    if (copyCoordsBtn) {
-      copyCoordsBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        copyApproachPositions();
-      });
-    }
-
-    if (resetPositionsBtn) {
-      resetPositionsBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        resetApproachPositions();
-      });
-    }
-
-    if (resetBtn) {
-      resetBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        resetApproachPositions();
-      });
-    }
-
-    window.ApproachInteractive = {
-      copyApproachPositions,
-      resetApproachPositions
+    window.ApproachShowcase = {
+      open: openOverlay,
+      close: closeOverlay,
+      isOpen: () => overlayOpen
     };
-
-    /**
-     * Interactive Drag-to-Position for Each Showcase Card
-     * Users can click & drag (or touch & drag) ANY card to freely reposition it
-     */
-    homeOverlayImages.forEach(card => {
-      let isDragging = false;
-      let startX = 0;
-      let startY = 0;
-      let initialCardX = 0;
-      let initialCardY = 0;
-
-      card.addEventListener('pointerdown', (e) => {
-        // Only primary mouse button or touch
-        if (e.button !== undefined && e.button !== 0) return;
-        
-        isDragging = true;
-        card.setPointerCapture(e.pointerId);
-
-        startX = e.clientX;
-        startY = e.clientY;
-
-        const currentPos = customPositions.get(card) || { x: 0, y: 0 };
-        initialCardX = currentPos.x;
-        initialCardY = currentPos.y;
-
-        card.classList.add('is-dragging');
-        card.style.zIndex = '100';
-
-        if (window.gsap) {
-          gsap.to(card, { scale: 1.04, duration: 0.2, ease: 'power2.out' });
-        }
-      });
-
-      card.addEventListener('pointermove', (e) => {
-        if (!isDragging) return;
-
-        const deltaX = e.clientX - startX;
-        const deltaY = e.clientY - startY;
-
-        const newX = initialCardX + deltaX;
-        const newY = initialCardY + deltaY;
-
-        const pos = customPositions.get(card);
-        if (pos) {
-          pos.x = newX;
-          pos.y = newY;
-        }
-
-        card.style.transform = `translate3d(${newX}px, ${newY}px, 0) scale(1.04)`;
-      });
-
-      function endDrag(e) {
-        if (!isDragging) return;
-        isDragging = false;
-        try {
-          card.releasePointerCapture(e.pointerId);
-        } catch (err) {}
-
-        card.classList.remove('is-dragging');
-        card.style.zIndex = '';
-
-        const pos = customPositions.get(card) || { x: 0, y: 0 };
-        if (window.gsap) {
-          gsap.to(card, {
-            x: pos.x,
-            y: pos.y,
-            scale: 1,
-            duration: 0.35,
-            ease: 'power2.out'
-          });
-        } else {
-          card.style.transform = `translate3d(${pos.x}px, ${pos.y}px, 0)`;
-        }
-      }
-
-      card.addEventListener('pointerup', endDrag);
-      card.addEventListener('pointercancel', endDrag);
-    });
-
   }
 
   if (document.readyState === 'loading') {

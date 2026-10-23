@@ -390,9 +390,15 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
 
   function completePortfolioEntrance(heroSection) {
     if (heroSection) {
-      heroSection.style.display = 'none';
+      heroSection.style.position = 'fixed';
+      heroSection.style.top = '0';
+      heroSection.style.left = '0';
+      heroSection.style.width = '100vw';
+      heroSection.style.height = '100vh';
+      heroSection.style.pointerEvents = 'none';
       heroSection.style.visibility = 'hidden';
-      heroSection.style.height = '0px';
+      heroSection.style.opacity = '0';
+      heroSection.style.zIndex = '-9999';
     }
 
     // Unlock page scrolling for the portfolio
@@ -436,9 +442,15 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
     
     const heroSection = document.querySelector('.section_home-hero');
     if (heroSection) {
-      heroSection.style.display = '';
-      heroSection.style.visibility = 'visible';
+      heroSection.style.position = 'relative';
+      heroSection.style.top = '';
+      heroSection.style.left = '';
+      heroSection.style.width = '';
       heroSection.style.height = 'auto';
+      heroSection.style.pointerEvents = 'auto';
+      heroSection.style.visibility = 'visible';
+      heroSection.style.opacity = '1';
+      heroSection.style.zIndex = '';
     }
 
     // Re-lock scroll while inside 3D desk
