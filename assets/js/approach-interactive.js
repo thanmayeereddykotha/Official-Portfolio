@@ -20,6 +20,7 @@
     const layoutBtns = Array.from(document.querySelectorAll('.approach-layout-btn'));
     const shuffleBtn = document.getElementById('btnShuffleApproach');
     const resetBtn = document.getElementById('btnResetApproach');
+    const copyCoordsBtn = document.getElementById('btnCopyApproachCoords');
 
     if (!homeOverlay || !homeOverlayTrigger) return;
 
@@ -263,6 +264,62 @@
         }
 
         switchLayout('1');
+      });
+    }
+
+    /**
+     * Copy Approach Showcase Coordinates to Clipboard
+     * Reads the exact layout preset, drag translation, and relative coordinates of all 8 cards
+     */
+    if (copyCoordsBtn) {
+      copyCoordsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+
+        const parentRect = homeOverlay.getBoundingClientRect();
+        const cardsData = {};
+
+        homeOverlayImages.forEach((card, index) => {
+          const mediaId = card.getAttribute('data-overlay-media') || (index + 1);
+          const pos = customPositions.get(card) || { x: 0, y: 0 };
+          const rect = card.getBoundingClientRect();
+          const imgEl = card.querySelector('img');
+          const title = imgEl?.getAttribute('alt') || `Showcase ${mediaId}`;
+
+          cardsData[`item_${mediaId}`] = {
+            title: title,
+            slotMediaId: mediaId,
+            dragOffset: { x: Math.round(pos.x), y: Math.round(pos.y) },
+            pixelPosition: {
+              left: Math.round(rect.left - parentRect.left) + 'px',
+              top: Math.round(rect.top - parentRect.top) + 'px',
+              width: Math.round(rect.width) + 'px',
+              height: Math.round(rect.height) + 'px'
+            },
+            percentPosition: {
+              left: (parentRect.width ? ((rect.left - parentRect.left) / parentRect.width * 100).toFixed(1) : 0) + '%',
+              top: (parentRect.height ? ((rect.top - parentRect.top) / parentRect.height * 100).toFixed(1) : 0) + '%'
+            }
+          };
+        });
+
+        const exportPayload = {
+          approachCoordinates: {
+            activeLayoutPreset: currentLayout,
+            cards: cardsData
+          }
+        };
+
+        const jsonString = JSON.stringify(exportPayload, null, 2);
+
+        if (window.copyTextToClipboard) {
+          window.copyTextToClipboard(jsonString).then(() => {
+            if (window.showToast) window.showToast('Approach coordinates copied! Paste in chat to fix.');
+          });
+        } else if (navigator.clipboard) {
+          navigator.clipboard.writeText(jsonString).then(() => {
+            if (window.showToast) window.showToast('Approach coordinates copied! Paste in chat to fix.');
+          });
+        }
       });
     }
 

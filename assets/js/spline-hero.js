@@ -39,6 +39,29 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
   // Lock scroll immediately while page is loading / desk is active
   lockPageScroll();
 
+  // Initialize browser history for 3D model section
+  try {
+    if (!history.state || !history.state.section) {
+      history.replaceState({ section: '3d-desk' }, '', window.location.pathname);
+    }
+  } catch (e) {}
+
+  // Handle browser back/forward buttons
+  window.addEventListener('popstate', (e) => {
+    const isDeskState = e.state?.section === '3d-desk' || (!window.location.hash.includes('portfolio') && !isDeskActive);
+    if (isDeskState && !isDeskActive) {
+      reopenDesk(false);
+    } else if (window.location.hash.includes('portfolio') && isDeskActive) {
+      enterPortfolio(false);
+    }
+  });
+
+  window.addEventListener('hashchange', () => {
+    if (!window.location.hash.includes('portfolio') && !isDeskActive) {
+      reopenDesk(false);
+    }
+  });
+
   function lockPageScroll() {
     isDeskActive = true;
     document.documentElement.style.overflow = 'hidden';
@@ -320,9 +343,15 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
    * - Seamlessly transitions into the portfolio website
    * - Unlocks scroll only after entrance is complete
    */
-  function enterPortfolio() {
+  function enterPortfolio(pushHistory = true) {
     if (isEnteringPortfolio) return;
     isEnteringPortfolio = true;
+
+    if (pushHistory) {
+      try {
+        history.pushState({ section: 'portfolio' }, '', window.location.pathname + '#portfolio');
+      } catch (e) {}
+    }
 
     const heroSection = document.querySelector('.section_home-hero');
     const overlay = container ? container.querySelector('.hero-3d_overlay') : null;
@@ -380,16 +409,30 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
       );
     }
 
-    // Show floating "3D Desk" button in fixed bottom nav
+    // Show floating "Back to 3D" button in fixed bottom nav & floating back pill
     updateNavDeskToggle(true);
+
+    const backBtn = document.getElementById('portfolioBackToHeroBtn');
+    if (backBtn) {
+      backBtn.style.display = 'flex';
+      if (window.gsap) {
+        gsap.fromTo(backBtn, { opacity: 0, x: -16 }, { opacity: 1, x: 0, duration: 0.45, ease: 'power2.out' });
+      }
+    }
   }
 
   /**
-   * Restores the 3D Desk when the user clicks "3D Desk" in the nav
+   * Restores the 3D Desk when the user clicks "Back to 3D" or browser Back
    */
-  function reopenDesk() {
+  function reopenDesk(pushHistory = true) {
     if (!container) return;
     isEnteringPortfolio = false;
+
+    if (pushHistory) {
+      try {
+        history.pushState({ section: '3d-desk' }, '', window.location.pathname);
+      } catch (e) {}
+    }
     
     const heroSection = document.querySelector('.section_home-hero');
     if (heroSection) {
@@ -404,6 +447,9 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
 
     const overlay = container.querySelector('.hero-3d_overlay');
     if (overlay) overlay.style.opacity = '1';
+
+    const backBtn = document.getElementById('portfolioBackToHeroBtn');
+    if (backBtn) backBtn.style.display = 'none';
 
     if (window.gsap) {
       gsap.set(canvas, { scale: 1, opacity: 1 });
@@ -421,16 +467,178 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
   }
 
   /**
-   * Sets up direct click button & nav desk toggle
+   * Sets up direct click button, draggable text positioning, copy tools, and back buttons
    */
   function setupFloatingControls() {
     const directBtn = document.getElementById('heroEnterDirectBtn');
-    if (directBtn) {
-      directBtn.addEventListener('click', enterPortfolio);
+    const statusPill = document.getElementById('heroStatusPill');
+
+    // 1. Draggable 3D text positioning for both elements
+    setupDraggable3dText(statusPill, false);
+    setupDraggable3dText(directBtn, true);
+
+    // 2. Copy 3D Text Positions button
+    const btnCopy3d = document.getElementById('btnCopy3dTextPositions');
+    if (btnCopy3d) {
+      btnCopy3d.addEventListener('click', (e) => {
+        e.stopPropagation();
+        copy3dTextPositions();
+      });
     }
 
-    // Add "3D Desk" toggle to the fixed bottom navigation
+    // 3. Reset 3D Text Positions button
+    const btnReset3d = document.getElementById('btnReset3dTextPositions');
+    if (btnReset3d) {
+      btnReset3d.addEventListener('click', (e) => {
+        e.stopPropagation();
+        reset3dTextPositions();
+      });
+    }
+
+    // 4. Floating Back to 3D button on portfolio
+    const backBtn = document.getElementById('portfolioBackToHeroBtn');
+    if (backBtn) {
+      backBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        reopenDesk(true);
+      });
+    }
+
+    // 5. Add "Back to 3D" toggle to the fixed bottom navigation
     setupNavDeskToggle();
+  }
+
+  /**
+   * Makes a 3D text element freely draggable within the 3D hero container
+   */
+  const custom3dTextOffsets = new Map();
+
+  function setupDraggable3dText(element, isActionBtn = false) {
+    if (!element) return;
+
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let initialX = 0;
+    let initialY = 0;
+    let hasMoved = false;
+
+    custom3dTextOffsets.set(element, { x: 0, y: 0 });
+
+    element.addEventListener('pointerdown', (e) => {
+      if (e.button !== undefined && e.button !== 0) return;
+      isDragging = true;
+      hasMoved = false;
+      element.setPointerCapture(e.pointerId);
+
+      startX = e.clientX;
+      startY = e.clientY;
+
+      const current = custom3dTextOffsets.get(element) || { x: 0, y: 0 };
+      initialX = current.x;
+      initialY = current.y;
+
+      element.style.cursor = 'grabbing';
+      element.style.zIndex = '60';
+      element.style.boxShadow = '0 12px 36px rgba(0, 0, 0, 0.35)';
+    });
+
+    element.addEventListener('pointermove', (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+        hasMoved = true;
+      }
+
+      const newX = initialX + dx;
+      const newY = initialY + dy;
+
+      const pos = custom3dTextOffsets.get(element);
+      if (pos) { pos.x = newX; pos.y = newY; }
+
+      element.style.transform = `translate3d(${newX}px, ${newY}px, 0)`;
+    });
+
+    function endDrag(e) {
+      if (!isDragging) return;
+      isDragging = false;
+      try {
+        element.releasePointerCapture(e.pointerId);
+      } catch (err) {}
+
+      element.style.cursor = 'grab';
+      element.style.zIndex = '';
+      element.style.boxShadow = '';
+
+      // If it's the action button and wasn't dragged, treat as normal click to enter
+      if (isActionBtn && !hasMoved) {
+        enterPortfolio(true);
+      }
+    }
+
+    element.addEventListener('pointerup', endDrag);
+    element.addEventListener('pointercancel', endDrag);
+  }
+
+  /**
+   * Reads exact positions of both 3D text elements and copies to clipboard
+   */
+  function copy3dTextPositions() {
+    const statusPill = document.getElementById('heroStatusPill');
+    const directBtn = document.getElementById('heroEnterDirectBtn');
+    if (!container || !statusPill || !directBtn) return;
+
+    const contRect = container.getBoundingClientRect();
+    const pillRect = statusPill.getBoundingClientRect();
+    const btnRect = directBtn.getBoundingClientRect();
+
+    const pillPos = custom3dTextOffsets.get(statusPill) || { x: 0, y: 0 };
+    const btnPos = custom3dTextOffsets.get(directBtn) || { x: 0, y: 0 };
+
+    const exportData = {
+      hero3dTextPositions: {
+        interactive3dModelText: {
+          left: Math.round(pillRect.left - contRect.left) + 'px',
+          bottom: Math.round(contRect.bottom - pillRect.bottom) + 'px',
+          offsetX: Math.round(pillPos.x),
+          offsetY: Math.round(pillPos.y),
+          css: `left: ${Math.round(pillRect.left - contRect.left)}px; bottom: ${Math.round(contRect.bottom - pillRect.bottom)}px;`
+        },
+        clickMonitorBtn: {
+          right: Math.round(contRect.right - btnRect.right) + 'px',
+          bottom: Math.round(contRect.bottom - btnRect.bottom) + 'px',
+          offsetX: Math.round(btnPos.x),
+          offsetY: Math.round(btnPos.y),
+          css: `right: ${Math.round(contRect.right - btnRect.right)}px; bottom: ${Math.round(contRect.bottom - btnRect.bottom)}px;`
+        }
+      }
+    };
+
+    const textToCopy = JSON.stringify(exportData, null, 2);
+    copyTextToClipboard(textToCopy).then(() => {
+      showToast('3D Text positions copied! Paste them in chat.');
+    }).catch(() => {
+      showToast('3D Text positions copied! Paste them in chat.');
+    });
+  }
+
+  function reset3dTextPositions() {
+    const statusPill = document.getElementById('heroStatusPill');
+    const directBtn = document.getElementById('heroEnterDirectBtn');
+
+    [statusPill, directBtn].forEach(el => {
+      if (!el) return;
+      const pos = custom3dTextOffsets.get(el);
+      if (pos) { pos.x = 0; pos.y = 0; }
+      if (window.gsap) {
+        gsap.to(el, { x: 0, y: 0, duration: 0.45, ease: 'back.out(1.4)' });
+      } else {
+        el.style.transform = '';
+      }
+    });
+    showToast('3D text positions reset to default.');
   }
 
   function setupNavDeskToggle() {
@@ -449,11 +657,11 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
             <circle cx="3" cy="3" fill="#ffffff" r="3"></circle>
           </svg>
         </div>
-        <div>3D Desk</div>
+        <div>Back to 3D</div>
       `;
       deskLink.addEventListener('click', (e) => {
         e.preventDefault();
-        reopenDesk();
+        reopenDesk(true);
       });
       navMenu.prepend(deskLink);
     }
@@ -466,11 +674,79 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
     }
   }
 
+  /**
+   * Universal Toast & Clipboard Helpers
+   */
+  function showToast(message) {
+    let toast = document.getElementById('globalAppToast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'globalAppToast';
+      toast.style.cssText = `
+        position: fixed;
+        bottom: 5rem;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        background: rgba(14, 18, 22, 0.94);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+        padding: 9px 20px;
+        border-radius: 999px;
+        font-family: var(--font--sans-serif);
+        font-size: 0.78rem;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        box-shadow: 0 16px 48px rgba(0,0,0,0.7);
+        z-index: 99999;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+      `;
+      document.body.appendChild(toast);
+    }
+    toast.innerHTML = `<span style="color: #4ade80;">✓</span> <span>${message}</span>`;
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateX(-50%) translateY(0)';
+
+    clearTimeout(toast.__timer);
+    toast.__timer = setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(-50%) translateY(20px)';
+    }, 3200);
+  }
+  window.showToast = showToast;
+
+  function copyTextToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text);
+    }
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-9999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      document.execCommand('copy');
+    } catch (err) {}
+    document.body.removeChild(textArea);
+    return Promise.resolve();
+  }
+  window.copyTextToClipboard = copyTextToClipboard;
+
   // Expose global controller
   window.SplineHero = {
     enterPortfolio,
     reopenDesk,
-    navigateToProjects
+    navigateToProjects,
+    isDeskActive: () => isDeskActive
   };
 
 })();
