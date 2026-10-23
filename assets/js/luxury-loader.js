@@ -30,6 +30,14 @@
     const itemTicker = loader.querySelector('.js-loader-item');
     const pageVeil = document.querySelector('.js-page-veil');
 
+    // Architectural Loader Timing & Curve Configuration
+    const LOADER_CONFIG = {
+      TEXT_REVEAL_DELAY_MS: 280,
+      MIN_TWEEN_DURATION_S: 0.35,
+      PROGRESS_SCALE_MULTIPLIER: 2.0,
+      EXIT_TRANSITION_EASE: 'power4.inOut'
+    };
+
     // Telemetry milestones
     const milestones = [
       { progress: 0.15, text: 'loading core subsystems...' },
