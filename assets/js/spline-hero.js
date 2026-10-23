@@ -29,6 +29,14 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
   let container = null;
   let isEnteringPortfolio = false;
   let isDeskActive = true;
+  let isLoaderFinished = false;
+
+  window.addEventListener('hero:revealed', () => {
+    isLoaderFinished = true;
+    if (typeof window.playSplineDropAnimation === 'function') {
+      window.playSplineDropAnimation();
+    }
+  });
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initSplineHero);
@@ -132,8 +140,70 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
         app._renderer.pipeline.setWatermark(null);
       }
 
+      // Defer Start drop animation until loader completes
+      let capturedEM = null;
+      let startConnectedDeferred = null;
+
+      Object.defineProperty(app, '_eventManager', {
+        configurable: true,
+        enumerable: true,
+        get() { return capturedEM; },
+        set(val) {
+          capturedEM = val;
+          if (val) {
+            const origActivate = val.activate;
+            val.activate = function () {
+              if (val.handlers?.Start) {
+                const origStartConnect = val.handlers.Start.connect;
+                val.handlers.Start.connect = function () {
+                  startConnectedDeferred = () => {
+                    try {
+                      origStartConnect.call(val.handlers.Start);
+                    } catch (e) {
+                      console.warn('Error running deferred Start connect:', e);
+                    }
+                  };
+                };
+              }
+              return origActivate.call(val);
+            };
+          }
+        }
+      });
+
       // Load buffer into application
       await app.start(buffer);
+      window.splineApp = app;
+
+      // Expose play function
+      let hasPlayedDrop = false;
+      function triggerDropAnimation() {
+        if (hasPlayedDrop) return;
+        hasPlayedDrop = true;
+        if (typeof startConnectedDeferred === 'function') {
+          startConnectedDeferred();
+          startConnectedDeferred = null;
+        } else if (app._eventManager?.handlers?.Start) {
+          try {
+            app._eventManager.handlers.Start.connect();
+          } catch (e) {}
+        }
+      }
+
+      window.playSplineDropAnimation = triggerDropAnimation;
+
+      if (isLoaderFinished) {
+        triggerDropAnimation();
+      }
+
+      // Listen for loader complete / hero revealed events
+      window.addEventListener('hero:revealed', triggerDropAnimation, { once: true });
+      window.addEventListener('loader:complete', triggerDropAnimation, { once: true });
+
+      // Fallback: If loader completed earlier or if no loader, trigger after short delay
+      if (!document.getElementById('luxuryLoader')) {
+        triggerDropAnimation();
+      }
 
       // Remove / hide any embedded iframe from the 3D scene
       hideSceneIframes();

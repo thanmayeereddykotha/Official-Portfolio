@@ -210,6 +210,13 @@
             window.dispatchEvent(new CustomEvent('loader:complete'));
             if (pageVeil && pageVeil.parentNode) pageVeil.parentNode.removeChild(pageVeil);
             if (loader && loader.parentNode) loader.parentNode.removeChild(loader);
+
+            // Trigger 3D model waterfall drop animation after loader is completely removed
+            if (typeof window.playSplineDropAnimation === 'function') {
+              setTimeout(() => {
+                window.playSplineDropAnimation();
+              }, 120);
+            }
           }
         });
 
