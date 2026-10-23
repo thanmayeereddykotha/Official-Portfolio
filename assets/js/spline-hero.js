@@ -467,35 +467,18 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
   }
 
   /**
-   * Sets up direct click button, draggable text positioning, copy tools, and back buttons
+   * Sets up direct click button, back navigation, and global tools
    */
   function setupFloatingControls() {
     const directBtn = document.getElementById('heroEnterDirectBtn');
-    const statusPill = document.getElementById('heroStatusPill');
-
-    // 1. Draggable 3D text positioning for both elements
-    setupDraggable3dText(statusPill, false);
-    setupDraggable3dText(directBtn, true);
-
-    // 2. Copy 3D Text Positions button
-    const btnCopy3d = document.getElementById('btnCopy3dTextPositions');
-    if (btnCopy3d) {
-      btnCopy3d.addEventListener('click', (e) => {
-        e.stopPropagation();
-        copy3dTextPositions();
+    if (directBtn) {
+      directBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        enterPortfolio(true);
       });
     }
 
-    // 3. Reset 3D Text Positions button
-    const btnReset3d = document.getElementById('btnReset3dTextPositions');
-    if (btnReset3d) {
-      btnReset3d.addEventListener('click', (e) => {
-        e.stopPropagation();
-        reset3dTextPositions();
-      });
-    }
-
-    // 4. Floating Back to 3D button on portfolio
+    // Floating Back to 3D button on portfolio
     const backBtn = document.getElementById('portfolioBackToHeroBtn');
     if (backBtn) {
       backBtn.addEventListener('click', (e) => {
@@ -504,141 +487,8 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
       });
     }
 
-    // 5. Add "Back to 3D" toggle to the fixed bottom navigation
+    // Add "Back to 3D" toggle to the fixed bottom navigation
     setupNavDeskToggle();
-  }
-
-  /**
-   * Makes a 3D text element freely draggable within the 3D hero container
-   */
-  const custom3dTextOffsets = new Map();
-
-  function setupDraggable3dText(element, isActionBtn = false) {
-    if (!element) return;
-
-    let isDragging = false;
-    let startX = 0;
-    let startY = 0;
-    let initialX = 0;
-    let initialY = 0;
-    let hasMoved = false;
-
-    custom3dTextOffsets.set(element, { x: 0, y: 0 });
-
-    element.addEventListener('pointerdown', (e) => {
-      if (e.button !== undefined && e.button !== 0) return;
-      isDragging = true;
-      hasMoved = false;
-      element.setPointerCapture(e.pointerId);
-
-      startX = e.clientX;
-      startY = e.clientY;
-
-      const current = custom3dTextOffsets.get(element) || { x: 0, y: 0 };
-      initialX = current.x;
-      initialY = current.y;
-
-      element.style.cursor = 'grabbing';
-      element.style.zIndex = '60';
-      element.style.boxShadow = '0 12px 36px rgba(0, 0, 0, 0.35)';
-    });
-
-    element.addEventListener('pointermove', (e) => {
-      if (!isDragging) return;
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-
-      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
-        hasMoved = true;
-      }
-
-      const newX = initialX + dx;
-      const newY = initialY + dy;
-
-      const pos = custom3dTextOffsets.get(element);
-      if (pos) { pos.x = newX; pos.y = newY; }
-
-      element.style.transform = `translate3d(${newX}px, ${newY}px, 0)`;
-    });
-
-    function endDrag(e) {
-      if (!isDragging) return;
-      isDragging = false;
-      try {
-        element.releasePointerCapture(e.pointerId);
-      } catch (err) {}
-
-      element.style.cursor = 'grab';
-      element.style.zIndex = '';
-      element.style.boxShadow = '';
-
-      // If it's the action button and wasn't dragged, treat as normal click to enter
-      if (isActionBtn && !hasMoved) {
-        enterPortfolio(true);
-      }
-    }
-
-    element.addEventListener('pointerup', endDrag);
-    element.addEventListener('pointercancel', endDrag);
-  }
-
-  /**
-   * Reads exact positions of both 3D text elements and copies to clipboard
-   */
-  function copy3dTextPositions() {
-    const statusPill = document.getElementById('heroStatusPill');
-    const directBtn = document.getElementById('heroEnterDirectBtn');
-    if (!container || !statusPill || !directBtn) return;
-
-    const contRect = container.getBoundingClientRect();
-    const pillRect = statusPill.getBoundingClientRect();
-    const btnRect = directBtn.getBoundingClientRect();
-
-    const pillPos = custom3dTextOffsets.get(statusPill) || { x: 0, y: 0 };
-    const btnPos = custom3dTextOffsets.get(directBtn) || { x: 0, y: 0 };
-
-    const exportData = {
-      hero3dTextPositions: {
-        interactive3dModelText: {
-          left: Math.round(pillRect.left - contRect.left) + 'px',
-          bottom: Math.round(contRect.bottom - pillRect.bottom) + 'px',
-          offsetX: Math.round(pillPos.x),
-          offsetY: Math.round(pillPos.y),
-          css: `left: ${Math.round(pillRect.left - contRect.left)}px; bottom: ${Math.round(contRect.bottom - pillRect.bottom)}px;`
-        },
-        clickMonitorBtn: {
-          right: Math.round(contRect.right - btnRect.right) + 'px',
-          bottom: Math.round(contRect.bottom - btnRect.bottom) + 'px',
-          offsetX: Math.round(btnPos.x),
-          offsetY: Math.round(btnPos.y),
-          css: `right: ${Math.round(contRect.right - btnRect.right)}px; bottom: ${Math.round(contRect.bottom - btnRect.bottom)}px;`
-        }
-      }
-    };
-
-    const textToCopy = JSON.stringify(exportData, null, 2);
-    copyTextToClipboard(textToCopy).then(() => {
-      showToast('3D Text positions copied! Paste them in chat.');
-    }).catch(() => {
-      showToast('3D Text positions copied! Paste them in chat.');
-    });
-  }
-
-  function reset3dTextPositions() {
-    const statusPill = document.getElementById('heroStatusPill');
-    const directBtn = document.getElementById('heroEnterDirectBtn');
-
-    [statusPill, directBtn].forEach(el => {
-      if (!el) return;
-      const pos = custom3dTextOffsets.get(el);
-      if (pos) { pos.x = 0; pos.y = 0; }
-      if (window.gsap) {
-        gsap.to(el, { x: 0, y: 0, duration: 0.45, ease: 'back.out(1.4)' });
-      } else {
-        el.style.transform = '';
-      }
-    });
-    showToast('3D text positions reset to default.');
   }
 
   function setupNavDeskToggle() {

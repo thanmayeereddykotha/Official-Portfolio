@@ -21,6 +21,8 @@
     const shuffleBtn = document.getElementById('btnShuffleApproach');
     const resetBtn = document.getElementById('btnResetApproach');
     const copyCoordsBtn = document.getElementById('btnCopyApproachCoords');
+    const copyPositionsBtn = document.getElementById('btnCopyApproachPositions');
+    const resetPositionsBtn = document.getElementById('btnResetApproachPositions');
 
     if (!homeOverlay || !homeOverlayTrigger) return;
 
@@ -269,59 +271,94 @@
 
     /**
      * Copy Approach Showcase Coordinates to Clipboard
-     * Reads the exact layout preset, drag translation, and relative coordinates of all 8 cards
+     * Reads the exact pixel coordinates, drag translation, and CSS for all 8 cards
      */
+    function copyApproachPositions() {
+      const parentRect = homeOverlay.getBoundingClientRect();
+      const imagesData = {};
+
+      homeOverlayImages.forEach((card, index) => {
+        const mediaId = card.getAttribute('data-overlay-media') || (index + 1);
+        const pos = customPositions.get(card) || { x: 0, y: 0 };
+        const rect = card.getBoundingClientRect();
+        const imgEl = card.querySelector('img');
+        const title = imgEl?.getAttribute('alt') || `Showcase ${mediaId}`;
+
+        const leftPx = Math.round(rect.left - parentRect.left);
+        const topPx = Math.round(rect.top - parentRect.top);
+
+        imagesData[`image_${mediaId}`] = {
+          title: title,
+          left: `${leftPx}px`,
+          top: `${topPx}px`,
+          offsetX: Math.round(pos.x),
+          offsetY: Math.round(pos.y),
+          css: `left: ${leftPx}px; top: ${topPx}px;`
+        };
+      });
+
+      const exportPayload = {
+        approachImagePositions: imagesData
+      };
+
+      const jsonString = JSON.stringify(exportPayload, null, 2);
+
+      if (window.copyTextToClipboard) {
+        window.copyTextToClipboard(jsonString).then(() => {
+          if (window.showToast) window.showToast('Image positions copied! Paste in chat to fix.');
+        });
+      } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(jsonString).then(() => {
+          if (window.showToast) window.showToast('Image positions copied! Paste in chat to fix.');
+        });
+      }
+    }
+
+    function resetApproachPositions() {
+      homeOverlayImages.forEach((card) => {
+        const pos = customPositions.get(card);
+        if (pos) { pos.x = 0; pos.y = 0; }
+        if (window.gsap) {
+          gsap.to(card, { x: 0, y: 0, scale: 1, duration: 0.45, ease: 'power2.out' });
+        } else {
+          card.style.transform = '';
+        }
+      });
+      if (window.showToast) window.showToast('Image positions reset to default');
+    }
+
+    if (copyPositionsBtn) {
+      copyPositionsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        copyApproachPositions();
+      });
+    }
+
     if (copyCoordsBtn) {
       copyCoordsBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-
-        const parentRect = homeOverlay.getBoundingClientRect();
-        const cardsData = {};
-
-        homeOverlayImages.forEach((card, index) => {
-          const mediaId = card.getAttribute('data-overlay-media') || (index + 1);
-          const pos = customPositions.get(card) || { x: 0, y: 0 };
-          const rect = card.getBoundingClientRect();
-          const imgEl = card.querySelector('img');
-          const title = imgEl?.getAttribute('alt') || `Showcase ${mediaId}`;
-
-          cardsData[`item_${mediaId}`] = {
-            title: title,
-            slotMediaId: mediaId,
-            dragOffset: { x: Math.round(pos.x), y: Math.round(pos.y) },
-            pixelPosition: {
-              left: Math.round(rect.left - parentRect.left) + 'px',
-              top: Math.round(rect.top - parentRect.top) + 'px',
-              width: Math.round(rect.width) + 'px',
-              height: Math.round(rect.height) + 'px'
-            },
-            percentPosition: {
-              left: (parentRect.width ? ((rect.left - parentRect.left) / parentRect.width * 100).toFixed(1) : 0) + '%',
-              top: (parentRect.height ? ((rect.top - parentRect.top) / parentRect.height * 100).toFixed(1) : 0) + '%'
-            }
-          };
-        });
-
-        const exportPayload = {
-          approachCoordinates: {
-            activeLayoutPreset: currentLayout,
-            cards: cardsData
-          }
-        };
-
-        const jsonString = JSON.stringify(exportPayload, null, 2);
-
-        if (window.copyTextToClipboard) {
-          window.copyTextToClipboard(jsonString).then(() => {
-            if (window.showToast) window.showToast('Approach coordinates copied! Paste in chat to fix.');
-          });
-        } else if (navigator.clipboard) {
-          navigator.clipboard.writeText(jsonString).then(() => {
-            if (window.showToast) window.showToast('Approach coordinates copied! Paste in chat to fix.');
-          });
-        }
+        copyApproachPositions();
       });
     }
+
+    if (resetPositionsBtn) {
+      resetPositionsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        resetApproachPositions();
+      });
+    }
+
+    if (resetBtn) {
+      resetBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        resetApproachPositions();
+      });
+    }
+
+    window.ApproachInteractive = {
+      copyApproachPositions,
+      resetApproachPositions
+    };
 
     /**
      * Interactive Drag-to-Position for Each Showcase Card

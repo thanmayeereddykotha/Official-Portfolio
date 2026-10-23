@@ -959,6 +959,7 @@ html.wf-design-mode .loading {
   [data-overlay-layout="2"] [data-overlay-media="8"] {
     grid-area: 3 / 7 / 7 / 9;
   }
+}
 
   /* Layout 3: Bento Grid Showcase */
   [data-overlay-layout="3"] [data-overlay-media="1"] { grid-area: 3 / 3 / 11 / 9; }
@@ -1132,6 +1133,10 @@ html.wf-design-mode .loading {
     transform: scale(1.1);
   }
 
+  .approach-overlay {
+    z-index: 9998 !important;
+  }
+
   .approach-overlay_grid-item {
     cursor: grab;
     touch-action: none;
@@ -1141,8 +1146,16 @@ html.wf-design-mode .loading {
   .approach-overlay_grid-item.is-dragging {
     cursor: grabbing !important;
     z-index: 100 !important;
-    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.85), 0 0 0 2px rgba(255, 255, 255, 0.4) !important;
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.85), 0 0 0 2px rgba(190, 253, 167, 0.6) !important;
     transform: scale(1.04) !important;
+    transition: none !important;
+  }
+
+  .approach-position-tools {
+    position: fixed;
+    top: 20px;
+    right: 24px;
+    z-index: 100000;
   }
 
   @media screen and (max-width: 767px) {
@@ -1213,26 +1226,14 @@ html.wf-design-mode .loading {
 <div id="hero3dContainer" style="width: 100%; height: 100%; min-height: 86vh; position: relative; overflow: hidden; border-radius: 12px; background: radial-gradient(circle at center, #ffffff 0%, #ededf0 100%);">
 <canvas id="hero3dCanvas" style="width: 100%; height: 100%; display: block; cursor: grab; background: #ffffff;"></canvas>
 
-<!-- Top Right Tool for Copying 3D Text Positions -->
-<div id="hero3dPositionTools" class="hero-position-tools" style="position: absolute; top: 16px; right: 16px; z-index: 50; display: flex; align-items: center; gap: 8px; pointer-events: auto;">
-  <button id="btnCopy3dTextPositions" type="button" style="background: rgba(14, 18, 22, 0.88); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.18); color: #ffffff; padding: 6px 14px; border-radius: 999px; font-size: 0.72rem; font-weight: 500; font-family: var(--font--sans-serif); cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 16px rgba(0,0,0,0.3); transition: all 0.2s ease;">
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-    <span>Copy 3D Text Positions</span>
-  </button>
-  <button id="btnReset3dTextPositions" type="button" style="background: rgba(14, 18, 22, 0.88); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.18); color: #888888; padding: 6px 10px; border-radius: 999px; font-size: 0.72rem; font-family: var(--font--sans-serif); cursor: pointer; transition: all 0.2s ease;" title="Reset positions">
-    ↺
-  </button>
-</div>
-
-<div class="hero-3d_overlay" style="position: absolute; bottom: clamp(76px, 10vh, 104px); left: 24px; right: 24px; display: flex; justify-content: space-between; align-items: center; pointer-events: none; z-index: 10; flex-wrap: wrap; gap: 12px;">
-<div id="heroStatusPill" class="hero-draggable-text" title="Drag to adjust position" style="pointer-events: auto; cursor: grab; user-select: none; display: flex; align-items: center; gap: 8px; font-family: var(--font--sans-serif); font-size: 0.75rem; letter-spacing: 0.05em; text-transform: uppercase; color: #222222; background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 8px 18px; border-radius: 999px; border: 1px solid rgba(0, 0, 0, 0.12); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06); transition: box-shadow 0.2s ease;">
+<!-- Fixed 3D Hero Status & Action Controls -->
+<div id="heroStatusPill" style="position: absolute; left: 29px; bottom: 33px; z-index: 10; pointer-events: auto; display: flex; align-items: center; gap: 8px; font-family: var(--font--sans-serif); font-size: 0.75rem; letter-spacing: 0.05em; text-transform: uppercase; color: #222222; background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 8px 18px; border-radius: 999px; border: 1px solid rgba(0, 0, 0, 0.12); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);">
 <span style="width: 7px; height: 7px; border-radius: 50%; background: #111111; display: inline-block;"></span>
 <span id="modelStatusText">Interactive 3D Model</span>
 </div>
-<button id="heroEnterDirectBtn" class="hero-enter-btn hero-draggable-text" title="Drag to position or click to enter" style="pointer-events: auto; cursor: grab; user-select: none; display: flex; align-items: center; gap: 8px; font-family: var(--font--sans-serif); font-size: 0.78rem; font-weight: 500; letter-spacing: 0.03em; color: #111111; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 8px 20px; border-radius: 999px; border: 1px solid rgba(0, 0, 0, 0.16); box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08); transition: box-shadow 0.2s ease;">
+<button id="heroEnterDirectBtn" class="hero-enter-btn" style="position: absolute; right: 25px; bottom: 23px; z-index: 10; pointer-events: auto; display: flex; align-items: center; gap: 8px; font-family: var(--font--sans-serif); font-size: 0.78rem; font-weight: 500; letter-spacing: 0.03em; color: #111111; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 8px 20px; border-radius: 999px; border: 1px solid rgba(0, 0, 0, 0.16); box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08); cursor: pointer; transition: all 0.25s ease;">
 <span>Click monitor</span>
 </button>
-</div>
 </div>
 </div>
 <!-- Floating Back to 3D Button in Portfolio -->
@@ -1434,6 +1435,16 @@ html.wf-design-mode .loading {
 </svg></div><div class="work-order_text">05</div></div><div class="spacer-1"></div><div class="text-size-large typeface-abc-synt">MeritPath Career Analytics Framework</div><div class="spacer-0-75"></div><div class="project-info_details text-size-small typeface-aeonik">Decision Modeling &amp; Labor Market Analytics</div></div></a></div><div class="project-card w-dyn-item" data-aspect-ratio="widescreen" data-coming-soon="" role="listitem"><a class="project-card-link w-inline-block" href="https://github.com/thanmayeereddykotha" target="_blank"><div class="project-image_wrapper"><img alt="" class="full-width" loading="lazy" sizes="100vw" src="https://cdn.prod.website-files.com/68924abc8a62e2a2be385f9a/6aa17b1896fa22ae33e4427b_quill-orki-thumbnail.webp" srcset="https://cdn.prod.website-files.com/68924abc8a62e2a2be385f9a/6aa17b1896fa22ae33e4427b_quill-orki-thumbnail-p-500.webp 500w, https://cdn.prod.website-files.com/68924abc8a62e2a2be385f9a/6aa17b1896fa22ae33e4427b_quill-orki-thumbnail-p-800.webp 800w, https://cdn.prod.website-files.com/68924abc8a62e2a2be385f9a/6aa17b1896fa22ae33e4427b_quill-orki-thumbnail-p-1080.webp 1080w, https://cdn.prod.website-files.com/68924abc8a62e2a2be385f9a/6aa17b1896fa22ae33e4427b_quill-orki-thumbnail.webp 2880w"/></div><div class="spacer-2"></div><div class="project-info_wrapper"><div class="work-order" data-wf--work-order--variant="homepage"><div class="work-order_svg w-embed"><svg fill="none" height="4" viewbox="0 0 4 4" width="4" xmlns="http://www.w3.org/2000/svg">
 <circle cx="2" cy="2" fill="white" r="2"></circle>
 </svg></div><div class="work-order_text">06</div></div><div class="spacer-1"></div><div class="text-size-large typeface-abc-synt">Supply Chain Logistics &amp; Route Optimization</div><div class="spacer-0-75"></div><div class="project-info_details text-size-small typeface-aeonik">Linear Programming &amp; Operations Research</div></div></a></div></div></div></div></div><div class="spacer-12-5"></div></section><section class="section_home-approach"><div class="padding-global"><div class="container-large"><div class="w-layout-grid grid"><div class="grid-block vertical-boder" id="w-node-f3220910-298b-5ffd-5c96-d80fd59f2ef9-be385f69"><div class="spacer-7-5"></div><div class="text-size-small">my approach</div><div class="spacer-12-5 hide-tablet"></div></div><div class="grid-block" id="w-node-_3f2f9ed3-7f2b-efa9-a38c-98007f72490d-be385f69"><div class="spacer-7-5 hide-tablet"></div><h6 class="typeface-abc-synt">I start by diving deeply into your core business challenges, data infrastructure, and strategic ambitions. Then I build from rigorous statistical exploration, predictive modeling, and market evidence. I work across data analytics, financial strategy, and scalable technology—not in silos, but in one unified, outcome-driven process. Every model, dashboard, and analytical system is engineered to scale, adapt, and deliver measurable ROI. I combine technical depth with executive insight to turn complex data into strategic conviction.</h6><div class="spacer-2"></div><a id="homeApproachShowMeTrigger" class="button btn-approach w-button" href="#">Show me</a><div class="spacer-12-5"></div></div></div></div></div><div id="homeApproachOverlay" class="approach-overlay" data-overlay-layout="1"><div class="approach-overlay_bg"></div>
+  <!-- Top Right Tool for Copying Approach Showcase Image Positions -->
+  <div id="approachPositionTools" class="approach-position-tools" style="position: fixed; top: 20px; right: 24px; z-index: 100000; display: flex; align-items: center; gap: 8px; pointer-events: auto;">
+    <button id="btnCopyApproachPositions" type="button" style="background: rgba(14, 18, 22, 0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.22); color: #ffffff; padding: 7px 16px; border-radius: 999px; font-size: 0.74rem; font-weight: 500; font-family: var(--font--sans-serif); cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 8px 30px rgba(0,0,0,0.55); transition: all 0.2s ease;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+      <span>Copy Image Positions</span>
+    </button>
+    <button id="btnResetApproachPositions" type="button" style="background: rgba(14, 18, 22, 0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.22); color: #888888; padding: 7px 12px; border-radius: 999px; font-size: 0.74rem; font-family: var(--font--sans-serif); cursor: pointer; transition: all 0.2s ease;" title="Reset image positions">
+      ↺
+    </button>
+  </div>
   <!-- Interactive Controls Bar for Image Positions -->
   <div class="approach-controls_dock">
     <div class="approach-controls_pill">
@@ -1458,7 +1469,7 @@ html.wf-design-mode .loading {
         </button>
         <button type="button" class="approach-action-btn" id="btnCopyApproachCoords" title="Copy Card Coordinates" style="background: rgba(255, 255, 255, 0.16); color: #ffffff; border-color: rgba(255, 255, 255, 0.3);">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-          <span>Copy Coordinates</span>
+          <span>Copy Image Positions</span>
         </button>
       </div>
       <div class="approach-controls_sep hide-mobile"></div>
