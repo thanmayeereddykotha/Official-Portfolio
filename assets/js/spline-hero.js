@@ -45,6 +45,9 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
     document.body.style.overflow = 'hidden';
     document.documentElement.style.height = '100%';
     document.body.style.height = '100%';
+    document.body.classList.add('has-3d-desk');
+    const nav = document.querySelector('.nav_fixed');
+    if (nav) nav.classList.add('nav-at-top');
     if (window.lenis && typeof window.lenis.stop === 'function') {
       window.lenis.stop();
     }
@@ -56,6 +59,9 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
     document.body.style.overflow = '';
     document.documentElement.style.height = '';
     document.body.style.height = '';
+    document.body.classList.remove('has-3d-desk');
+    const nav = document.querySelector('.nav_fixed');
+    if (nav) nav.classList.remove('nav-at-top');
     if (window.lenis && typeof window.lenis.start === 'function') {
       window.lenis.start();
     }
@@ -242,24 +248,17 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
   function setupSceneInteractions() {
     if (!app || !canvas) return;
 
-    const statusText = document.getElementById('modelStatusText');
-
-    // Hover detection
+    // Hover detection - update cursor only, keep status text clean as 'Interactive 3D Model'
     app.addEventListener('mouseHover', (e) => {
       if (isEnteringPortfolio) return;
 
       const isMonitor = isMonitorObject(e.target);
       const isMacBook = isMacBookObject(e.target);
 
-      if (isMonitor) {
+      if (isMonitor || isMacBook) {
         canvas.style.cursor = 'pointer';
-        if (statusText) statusText.textContent = 'Monitor • Click to Enter Portfolio';
-      } else if (isMacBook) {
-        canvas.style.cursor = 'pointer';
-        if (statusText) statusText.textContent = 'MacBook • Click to View Projects (/work)';
       } else {
         canvas.style.cursor = 'grab';
-        if (statusText) statusText.textContent = 'Interactive 3D Workspace • Monitor: Enter • MacBook: Projects';
       }
     });
 
@@ -277,12 +276,7 @@ import { Application } from 'https://unpkg.com/@splinetool/runtime@2.0.107/build
     canvas.addEventListener('click', (e) => {
       if (isEnteringPortfolio) return;
       if (canvas.style.cursor === 'pointer') {
-        const text = statusText ? statusText.textContent : '';
-        if (text.includes('Projects') || text.includes('MacBook')) {
-          navigateToProjects();
-        } else {
-          enterPortfolio();
-        }
+        enterPortfolio();
       }
     });
   }
